@@ -11,7 +11,7 @@ class QAApp {
         this.autoSaveDelay = 500; // 0.5秒延迟自动保存（更快响应）
         this.currentVideoDirectory = 'static/videos'; // 固定视频目录
         this.autoSaveEnabled = true; // 自动保存已启用
-        this.currentJSONFile = 'test_qacandidate_v1.json';
+        this.currentJSONFile = null;
         this.currentPlayEndHandler = null; // 当前播放结束处理器
         this.init();
     }
@@ -2408,6 +2408,71 @@ class QAApp {
             }
         } catch (error) {
             console.error('自动保存QA失败:', error);
+        }
+    }
+    
+    // 检查当前加载的JSON文件的可用QA数量
+    async checkQACount() {
+        try {
+            // 检查是否已加载JSON文件
+            if (!this.currentJSONFile) {
+                this.showError('请先加载JSON文件');
+                return;
+            }
+            
+            this.showLoading(true);
+            
+            // 获取所有segments的QA统计信息
+            const response = await fetch('/api/qa/segments');
+            const data = await response.json();
+            
+            if (data.segments) {
+                let totalSegments = 0;
+                let pendingSegments = 0;
+                let usableQAs = 0;
+                
+                // 统计所有segment的QA数量
+                for (const segment of data.segments) {
+                    totalSegments++;
+                    
+                    // 统计待观察的segment数量
+                    if (segment.state === 'generate sucess' || segment.state === 'pending' || segment.state === '待观察') {
+                        pendingSegments++;
+                    }
+                    
+                    // 获取每个segment的QA详情来统计可用QA
+                    try {
+                        const qaResponse = await fetch(`/api/qa/segment/${segment.id}/qas`);
+                        const qaData = await qaResponse.json();
+                        
+                        if (qaData.qas) {
+                            const segmentUsableQAs = qaData.qas.filter(qa => qa.usable === true).length;
+                            usableQAs += segmentUsableQAs;
+                        }
+                    } catch (error) {
+                        console.warn(`获取segment ${segment.id} 的QA详情失败:`, error);
+                    }
+                }
+                
+                // 显示统计结果
+                const message = `
+当前JSON文件: ${this.currentJSONFile.split('/').pop()}
+
+统计结果:
+• 总Segment数量: ${totalSegments}
+• 待观察Segment数量: ${pendingSegments}
+• 可用QA数量: ${usableQAs}
+                `;
+                
+                alert(message);
+            } else {
+                this.showError('无法获取QA统计信息');
+            }
+        } catch (error) {
+            console.error('检查QA数量失败:', error);
+            this.showError('检查QA数量失败: ' + error.message);
+        } finally {
+            this.showLoading(false);
         }
     }
 }
