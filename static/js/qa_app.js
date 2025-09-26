@@ -233,11 +233,11 @@ class QAApp {
                 qaElement.classList.add('selected-for-use');
             }
             qaElement.innerHTML = `
-                <div class="qa-question">${qa.question || qa.Question || ''}</div>
-                <div class="qa-answer"><strong>答案:</strong> ${qa.answer || qa.Answer || ''}</div>
+                <div class="qa-question">${qa.question || ''}</div>
+                <div class="qa-answer"><strong>答案:</strong> ${qa.answer || ''}</div>
                 <div class="qa-meta">
-                    <span>类型: ${qa.question_type || qa['Question Type'] || ''}</span> | 
-                    <span>方向: ${this.getDirectionWithHint(qa.temporal_direction || qa['Temporal Direction'] || '')}</span> | 
+                    <span>类型: ${qa.question_type || ''}</span> | 
+                    <span>方向: ${this.getDirectionWithHint(qa.temporal_direction || '')}</span> | 
                     <span>时间: ${this.ensureTimeFormat(qa.start_time || '00:00.00')} - ${this.ensureTimeFormat(qa.end_time || '00:10.00')}</span>
                 </div>
                 <div class="qa-cut-point-section">
@@ -285,27 +285,27 @@ class QAApp {
                 <div class="qa-edit-form" id="editForm_${qa.qa_id}">
                     <div class="form-group">
                         <label>问题:</label>
-                        <textarea id="edit_question_${qa.qa_id}">${qa.question || qa.Question || ''}</textarea>
+                        <textarea id="edit_question_${qa.qa_id}">${qa.question || ''}</textarea>
                     </div>
                     <div class="form-group">
                         <label>答案:</label>
-                        <input type="text" id="edit_answer_${qa.qa_id}" value="${qa.answer || qa.Answer || ''}">
+                        <input type="text" id="edit_answer_${qa.qa_id}" value="${qa.answer || ''}">
                     </div>
                     <div class="form-group">
                         <label>问题类型:</label>
                         <select id="edit_type_${qa.qa_id}">
-                            <option value="Planning" ${(qa.question_type || qa['Question Type']) === 'Planning' ? 'selected' : ''}>Planning</option>
-                            <option value="Relation" ${(qa.question_type || qa['Question Type']) === 'Relation' ? 'selected' : ''}>Relation</option>
-                            <option value="Relative Distance" ${(qa.question_type || qa['Question Type']) === 'Relative Distance' ? 'selected' : ''}>Relative Distance</option>
-                            <option value="Appearance Order" ${(qa.question_type || qa['Question Type']) === 'Appearance Order' ? 'selected' : ''}>Appearance Order</option>
-                            <option value="Relative Size" ${(qa.question_type || qa['Question Type']) === 'Relative Size' ? 'selected' : ''}>Relative Size</option>
+                            <option value="Planning" ${qa.question_type === 'Planning' ? 'selected' : ''}>Planning</option>
+                            <option value="Relation" ${qa.question_type === 'Relation' ? 'selected' : ''}>Relation</option>
+                            <option value="Relative Distance" ${qa.question_type === 'Relative Distance' ? 'selected' : ''}>Relative Distance</option>
+                            <option value="Appearance Order" ${qa.question_type === 'Appearance Order' ? 'selected' : ''}>Appearance Order</option>
+                            <option value="Relative Size" ${qa.question_type === 'Relative Size' ? 'selected' : ''}>Relative Size</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>时间方向:</label>
                         <select id="edit_direction_${qa.qa_id}">
-                            <option value="Forward" ${(qa.temporal_direction || qa['Temporal Direction']) === 'Forward' ? 'selected' : ''}>Forward</option>
-                            <option value="Backward" ${(qa.temporal_direction || qa['Temporal Direction']) === 'Backward' ? 'selected' : ''}>Backward</option>
+                            <option value="Forward" ${qa.temporal_direction === 'Forward' ? 'selected' : ''}>Forward</option>
+                            <option value="Backward" ${qa.temporal_direction === 'Backward' ? 'selected' : ''}>Backward</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -328,7 +328,7 @@ class QAApp {
                     </div>
                     <div class="form-group">
                         <label>推理:</label>
-                        <textarea id="edit_reason_${qa.qa_id}">${qa.reason || qa.Reason || ''}</textarea>
+                        <textarea id="edit_reason_${qa.qa_id}">${qa.reason || ''}</textarea>
                     </div>
                     <div class="qa-actions">
                         <button class="btn btn-success btn-sm" onclick="qaApp.saveQA('${qa.qa_id}')">
@@ -380,13 +380,13 @@ class QAApp {
         if (!editForm) return;
         
         const updatedData = {
-            Question: document.getElementById(`edit_question_${qaId}`).value,
-            Answer: document.getElementById(`edit_answer_${qaId}`).value,
-            'Question Type': document.getElementById(`edit_type_${qaId}`).value,
-            'Temporal Direction': document.getElementById(`edit_direction_${qaId}`).value,
+            question: document.getElementById(`edit_question_${qaId}`).value,
+            answer: document.getElementById(`edit_answer_${qaId}`).value,
+            question_type: document.getElementById(`edit_type_${qaId}`).value,
+            temporal_direction: document.getElementById(`edit_direction_${qaId}`).value,
             start_time: document.getElementById(`edit_start_time_${qaId}`).value,
             end_time: document.getElementById(`edit_end_time_${qaId}`).value,
-            Reason: document.getElementById(`edit_reason_${qaId}`).value
+            reason: document.getElementById(`edit_reason_${qaId}`).value
         };
         
         // 如果当前选中的QA有切分点，也保存切分点数据
@@ -1252,13 +1252,13 @@ class QAApp {
             
             const result = await response.json();
             
-            if (result.success) {
-                console.log(`已自动保存: ${qaId}`);
-                this.showAutoSaveIndicator();
-            } else {
-                console.error('自动保存失败:', result.error);
-                this.showError(`保存失败: ${result.error}`);
-            }
+        if (result.success) {
+            console.log(`已自动保存: ${qaId}`);
+            this.showAutoSaveIndicator();
+        } else {
+            console.error('自动保存失败:', result.error);
+            this.showError(`保存失败: ${result.error || '未知错误'}`);
+        }
         } catch (error) {
             console.error('自动保存失败:', error);
             this.showError('保存失败，请检查网络连接');
@@ -1631,11 +1631,11 @@ class QAApp {
                 total_qas: selectedQAs.length,
                 qas: selectedQAs.map(qa => ({
                     qa_id: qa.qa_id,
-                    question: qa.Question,
-                    answer: qa.Answer,
-                    question_type: qa['Question Type'],
-                    temporal_direction: qa['Temporal Direction'],
-                    reason: qa.Reason,
+                    question: qa.question,
+                    answer: qa.answer,
+                    question_type: qa.question_type,
+                    temporal_direction: qa.temporal_direction,
+                    reason: qa.reason,
                     start_time: qa.start_time,
                     end_time: qa.end_time,
                     cut_point: qa.cut_point,
@@ -2376,12 +2376,26 @@ class QAApp {
             const qa = this.currentQAs.find(q => q.qa_id === qaId);
             if (!qa) return;
             
+            // 只发送必要的字段，避免重复字段
+            const cleanData = {
+                question: qa.question,
+                answer: qa.answer,
+                question_type: qa.question_type,
+                temporal_direction: qa.temporal_direction,
+                start_time: qa.start_time,
+                end_time: qa.end_time,
+                reason: qa.reason,
+                usable: qa.usable,
+                cut_point: qa.cut_point,
+                '视角': qa['视角']
+            };
+            
             const response = await fetch(`/api/qa/qa/${qaId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(qa)
+                body: JSON.stringify(cleanData)
             });
             
             if (response.ok) {
