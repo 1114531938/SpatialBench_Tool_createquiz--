@@ -299,6 +299,9 @@ class QAApp {
                             <option value="Relative Distance" ${qa.question_type === 'Relative Distance' ? 'selected' : ''}>Relative Distance</option>
                             <option value="Appearance Order" ${qa.question_type === 'Appearance Order' ? 'selected' : ''}>Appearance Order</option>
                             <option value="Relative Size" ${qa.question_type === 'Relative Size' ? 'selected' : ''}>Relative Size</option>
+                            <option value="Spatial State" ${qa.question_type === 'Spatial State' ? 'selected' : ''}>Spatial State</option>
+                            <option value="Relative Speed" ${qa.question_type === 'Relative Speed' ? 'selected' : ''}>Relative Speed</option>
+                            <option value="Counting" ${qa.question_type === 'Counting' ? 'selected' : ''}>Counting</option>
                         </select>
                     </div>
                     <div class="form-group">
