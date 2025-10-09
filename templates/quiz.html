@@ -210,297 +210,178 @@
         }
 
         .video-time-display {
-            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
-            border: 2px solid #e1e8ed;
-            border-radius: 20px;
-            padding: 25px 30px;
-            margin: 25px auto;
+            background: linear-gradient(135deg, #667eea08 0%, #764ba208 100%);
+            border: 1px solid #e1e8ed;
+            border-radius: 12px;
+            padding: 12px 18px;
+            margin: 15px auto;
             max-width: 800px;
-            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.15);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .video-time-display::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #667eea 100%);
-            background-size: 200% 100%;
-            animation: shimmer 3s ease-in-out infinite;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.08);
+            transition: all 0.3s;
         }
 
         .video-time-display:hover {
-            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.25);
-            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
         }
 
         .time-info {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            margin-bottom: 15px;
-            font-size: 16px;
-            gap: 15px;
+            margin-right: 20px;
+            font-size: 13px;
+            gap: 8px;
         }
 
         .time-info:last-child {
-            margin-bottom: 0;
+            margin-right: 0;
         }
 
         .time-label {
-            font-weight: 700;
+            font-weight: 600;
             color: #667eea;
-            min-width: 140px;
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 10px;
-            font-size: 16px;
+            gap: 5px;
+            font-size: 13px;
         }
 
         .time-label i {
             color: #667eea;
-            font-size: 16px;
-            animation: pulse-icon 2s ease-in-out infinite;
+            font-size: 12px;
         }
 
         .time-value {
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            font-size: 22px;
-            font-weight: 800;
+            font-size: 14px;
+            font-weight: 700;
             color: #667eea;
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
-            padding: 12px 20px;
-            border-radius: 12px;
-            border: 3px solid #667eea;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-            min-width: 120px;
+            background: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 2px solid #667eea;
+            box-shadow: 0 1px 4px rgba(102, 126, 234, 0.2);
             text-align: center;
-            letter-spacing: 1px;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .time-value::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
-            animation: slide-shine 2s ease-in-out infinite;
+            letter-spacing: 0.5px;
+            transition: all 0.3s;
         }
 
         .time-value:hover {
-            transform: scale(1.08) translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
         }
 
         #currentTimeDisplay {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            font-size: 26px;
-            padding: 14px 28px;
-            animation: current-time-pulse 2s ease-in-out infinite;
-            border: 3px solid #667eea;
-        }
-
-        @keyframes current-time-pulse {
-            0%, 100% { 
-                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-                transform: scale(1);
-            }
-            50% { 
-                box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
-                transform: scale(1.05);
-            }
+            font-size: 15px;
+            padding: 5px 12px;
+            border: 2px solid #667eea;
+            font-weight: 800;
         }
 
         .segment-info {
-            border-top: 2px dashed #dee2e6;
-            padding-top: 18px;
-            margin-top: 18px;
-            background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
-            padding: 18px;
-            border-radius: 10px;
-            margin-left: -10px;
-            margin-right: -10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding-left: 20px;
+            margin-left: 20px;
+            border-left: 2px solid #dee2e6;
         }
 
         .segment-info .time-value {
             background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
             color: white;
-            border: none;
-            box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
-            font-size: 16px;
+            border: 2px solid #ffc107;
+            font-size: 13px;
+            padding: 4px 10px;
         }
 
         /* 视角选择区域 */
         .perspective-selection {
-            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
-            border: 2px solid #e1e8ed;
-            border-radius: 20px;
-            padding: 25px 30px;
-            margin: 25px auto;
+            background: linear-gradient(135deg, #667eea08 0%, #764ba208 100%);
+            border: 1px solid #e1e8ed;
+            border-radius: 12px;
+            padding: 12px 18px;
+            margin: 15px auto;
             max-width: 800px;
-            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.15);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .perspective-selection::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #667eea 100%);
-            background-size: 200% 100%;
-            animation: shimmer 3s ease-in-out infinite;
-        }
-
-        @keyframes shimmer {
-            0%, 100% { background-position: 200% 0; }
-            50% { background-position: -200% 0; }
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
         }
 
         .perspective-header {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            font-size: 17px;
+            gap: 10px;
+            font-size: 13px;
         }
 
         .perspective-label {
-            font-weight: 700;
+            font-weight: 600;
             color: #667eea;
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 10px;
-            font-size: 18px;
+            gap: 5px;
+            font-size: 13px;
         }
 
         .perspective-label i {
             color: #667eea;
-            font-size: 20px;
-            animation: pulse-icon 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse-icon {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+            font-size: 12px;
         }
 
         .current-perspective {
             font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            font-size: 20px;
-            font-weight: 800;
+            font-size: 14px;
+            font-weight: 700;
             color: #667eea;
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
-            padding: 12px 20px;
-            border-radius: 12px;
-            border: 3px solid #667eea;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .current-perspective::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
-            animation: slide-shine 2s ease-in-out infinite;
-        }
-
-        @keyframes slide-shine {
-            0% { left: -100%; }
-            50% { left: 100%; }
-            100% { left: 100%; }
+            background: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 2px solid #667eea;
+            box-shadow: 0 1px 4px rgba(102, 126, 234, 0.2);
         }
 
         .perspective-buttons {
-            display: flex;
+            display: inline-flex;
             flex-wrap: wrap;
-            gap: 12px;
-            justify-content: center;
+            gap: 8px;
             align-items: center;
         }
 
         .perspective-btn {
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+            padding: 5px 14px;
+            background: white;
             border: 2px solid #e1e8ed;
-            border-radius: 14px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 15px;
-            font-weight: 700;
+            font-size: 13px;
+            font-weight: 600;
             color: #667eea;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
-            position: relative;
-            overflow: hidden;
-            min-width: 80px;
-            text-align: center;
-        }
-
-        .perspective-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            opacity: 0;
-            transition: opacity 0.3s;
-            z-index: -1;
+            transition: all 0.3s;
+            box-shadow: 0 1px 4px rgba(102, 126, 234, 0.1);
         }
 
         .perspective-btn:hover {
             border-color: #667eea;
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-            color: white;
-        }
-
-        .perspective-btn:hover::before {
-            opacity: 1;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+            background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
         }
 
         .perspective-btn.active {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border-color: #667eea;
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-            transform: translateY(-3px) scale(1.05);
-            animation: active-pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes active-pulse {
-            0%, 100% { 
-                box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-                transform: translateY(-3px) scale(1.05);
-            }
-            50% { 
-                box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6);
-                transform: translateY(-4px) scale(1.08);
-            }
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+            transform: translateY(-1px);
         }
 
         .perspective-btn.active:hover {
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6);
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.4);
         }
 
         .video-controls {
@@ -509,20 +390,18 @@
         }
 
         .play-btn {
-            padding: 16px 40px;
+            padding: 10px 28px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 16px;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 18px;
+            font-size: 15px;
             font-weight: 700;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+            box-shadow: 0 3px 12px rgba(102, 126, 234, 0.3);
             position: relative;
             overflow: hidden;
-            text-transform: uppercase;
-            letter-spacing: 1px;
         }
 
         .play-btn::before {
@@ -537,8 +416,8 @@
         }
 
         .play-btn:hover {
-            transform: translateY(-4px) scale(1.05);
-            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
             background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
         }
 
@@ -547,7 +426,7 @@
         }
 
         .play-btn:active {
-            transform: translateY(-2px) scale(1.02);
+            transform: translateY(0);
         }
 
         /* 问题区域 */

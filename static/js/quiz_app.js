@@ -6,6 +6,7 @@ class QuizApp {
         this.currentIndex = -1;
         this.videoPlayer = null;
         this.showingGT = false;
+        this.availablePerspectives = [];
         this.init();
     }
     
@@ -209,11 +210,23 @@ class QuizApp {
         if (!this.currentQA) return;
         
         try {
-            const response = await fetch(`/api/quiz/qa/${this.currentQA.qa_id}/video`);
-            const data = await response.json();
+            // 获取当前QA的视频名称和视角
+            const videoName = this.currentQA.video_name;
+            const perspective = this.currentQA.视角 && this.currentQA.视角[0] ? this.currentQA.视角[0] : null;
             
-            if (data.video_path && this.videoPlayer) {
-                this.videoPlayer.src = data.video_path;
+            // 构造视频路径
+            let videoPath = '';
+            if (perspective) {
+                // 多视角：/static/videos/{video_name}/{perspective}
+                videoPath = `/static/videos/${videoName}/${perspective}`;
+            } else {
+                // 单视角：/static/videos/{video_name}/{video_name}.mp4
+                videoPath = `/static/videos/${videoName}/${videoName}.mp4`;
+            }
+            
+            if (this.videoPlayer) {
+                this.videoPlayer.src = videoPath;
+                console.log('加载视频:', videoPath);
             }
         } catch (error) {
             console.error('加载视频失败:', error);
@@ -242,46 +255,46 @@ class QuizApp {
                     <source src="" type="video/mp4">
                 </video>
                 <div class="video-time-display">
-                    <div class="time-info">
+                    <span class="time-info">
                         <span class="time-label">
                             <i class="fas fa-play-circle"></i>
-                            当前播放时间:
+                            当前:
                         </span>
                         <span class="time-value" id="currentTimeDisplay">00:00.00</span>
-                    </div>
-                    <div class="time-info">
+                    </span>
+                    <span class="time-info">
                         <span class="time-label">
                             <i class="fas fa-film"></i>
-                            视频总时长:
+                            总时长:
                         </span>
                         <span class="time-value" id="totalTimeDisplay">00:00.00</span>
-                    </div>
-                    <div class="time-info segment-info">
+                    </span>
+                    <span class="time-info segment-info">
                         <span class="time-label">
                             <i class="fas fa-cut"></i>
-                            片段范围:
+                            片段:
                         </span>
                         <span class="time-value">${qa.start_time} - ${qa.end_time}</span>
                         ${qa.cut_point ? `
-                        <span class="time-label" style="margin-left: 15px;">
+                        <span class="time-label">
                             <i class="fas fa-scissors"></i>
-                            切分点:
+                            切分:
                         </span>
                         <span class="time-value">${qa.cut_point}</span>
                         ` : ''}
-                    </div>
+                    </span>
                 </div>
                 <div class="perspective-selection">
-                    <div class="perspective-header">
+                    <span class="perspective-header">
                         <span class="perspective-label">
                             <i class="fas fa-video"></i>
-                            视角选择:
+                            视角:
                         </span>
                         <span class="current-perspective" id="currentPerspective">加载中...</span>
-                    </div>
-                    <div class="perspective-buttons" id="perspectiveButtons">
+                    </span>
+                    <span class="perspective-buttons" id="perspectiveButtons">
                         <!-- 视角按钮将动态生成 -->
-                    </div>
+                    </span>
                 </div>
                 <div class="video-controls">
                     <button class="play-btn" onclick="quizApp.playVideo()">
@@ -395,12 +408,16 @@ class QuizApp {
             const data = await response.json();
             
             if (data.perspectives && data.perspectives.length > 0) {
+                // 保存可用视角列表
+                this.availablePerspectives = data.perspectives;
                 this.renderPerspectiveButtons(data.perspectives);
             } else {
+                this.availablePerspectives = [];
                 document.getElementById('perspectiveButtons').innerHTML = '<div style="text-align: center; color: #999;">无可用视角</div>';
             }
         } catch (error) {
             console.error('加载视角信息失败:', error);
+            this.availablePerspectives = [];
             document.getElementById('perspectiveButtons').innerHTML = '<div style="text-align: center; color: red;">加载失败</div>';
         }
     }
@@ -446,18 +463,12 @@ class QuizApp {
             // 重新加载视频
             await this.loadVideo();
             
-            // 更新视角按钮状态
-            this.renderPerspectiveButtons(
-                document.querySelectorAll('.perspective-btn').length > 0 ? 
-                Array.from(document.querySelectorAll('.perspective-btn')).map(btn => btn.textContent.trim()) : 
-                []
-            );
-            
-            // 更新当前视角显示
-            const currentPerspectiveEl = document.getElementById('currentPerspective');
-            if (currentPerspectiveEl) {
-                currentPerspectiveEl.textContent = perspective;
+            // 更新视角按钮状态（使用保存的视角列表）
+            if (this.availablePerspectives && this.availablePerspectives.length > 0) {
+                this.renderPerspectiveButtons(this.availablePerspectives);
             }
+            
+            console.log('视角已切换为:', perspective);
             
         } catch (error) {
             console.error('切换视角失败:', error);
@@ -523,15 +534,48 @@ class QuizApp {
                 this.currentQA.human_answer = option;
                 this.qaList[this.currentIndex].human_answer = option;
                 
-                // 重新渲染
+                // 只更新选项按钮，不重新渲染整个页面
+                this.updateOptionsDisplay();
+                
+                // 更新左侧列表和统计
                 this.renderQAList();
-                this.renderQuestionArea();
-                this.updateStatistics();  // 更新统计
+                this.updateStatistics();
             }
         } catch (error) {
             console.error('保存答案失败:', error);
             alert('❌ 保存失败');
         }
+    }
+    
+    updateOptionsDisplay() {
+        // 只更新选项按钮的显示状态，不重新渲染整个区域
+        const optionsSection = document.querySelector('.options-section');
+        if (!optionsSection) return;
+        
+        const options = this.currentQA.options || [];
+        const humanAnswer = this.currentQA.human_answer;
+        
+        // 获取所有选项按钮
+        const optionButtons = optionsSection.querySelectorAll('.option-btn');
+        
+        optionButtons.forEach((button, index) => {
+            const option = options[index];
+            const isSelected = (humanAnswer === option);
+            
+            // 更新选中状态类
+            if (isSelected) {
+                button.classList.add('selected');
+            } else {
+                button.classList.remove('selected');
+            }
+            
+            // 更新inline样式（与renderOptions保持一致）
+            if (isSelected) {
+                button.setAttribute('style', 'background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-color: #2196f3; font-weight: 600; color: #0d47a1;');
+            } else {
+                button.setAttribute('style', 'background: white; border-color: #e1e8ed; color: #333; cursor: pointer;');
+            }
+        });
     }
     
     async toggleUsable() {
@@ -549,10 +593,12 @@ class QuizApp {
                 this.currentQA.usable = result.usable;
                 this.qaList[this.currentIndex].usable = result.usable;
                 
-                // 重新渲染
+                // 只更新按钮显示
+                this.updateUsableButton(result.usable);
+                
+                // 更新左侧列表和统计
                 this.renderQAList();
-                this.renderQuestionArea();
-                this.updateStatistics();  // 更新统计
+                this.updateStatistics();
                 
                 // 显示提示
                 const statusText = result.usable ? '有效' : '无效';
@@ -561,6 +607,35 @@ class QuizApp {
         } catch (error) {
             console.error('切换有效性失败:', error);
             alert('❌ 操作失败');
+        }
+    }
+    
+    updateUsableButton(usable) {
+        // 只更新"标记为有效/无效"按钮的状态
+        const usableBtn = document.querySelector('.btn-toggle-usable');
+        if (!usableBtn) return;
+        
+        const icon = usableBtn.querySelector('i');
+        const btnText = usableBtn.childNodes[usableBtn.childNodes.length - 1];
+        
+        if (usable === false) {
+            // 当前无效，显示"标记为有效"
+            usableBtn.classList.add('unusable');
+            if (icon) {
+                icon.className = 'fas fa-check';
+            }
+            if (btnText) {
+                btnText.textContent = ' 标记为有效';
+            }
+        } else {
+            // 当前有效，显示"标记为无效"
+            usableBtn.classList.remove('unusable');
+            if (icon) {
+                icon.className = 'fas fa-ban';
+            }
+            if (btnText) {
+                btnText.textContent = ' 标记为无效';
+            }
         }
     }
     
