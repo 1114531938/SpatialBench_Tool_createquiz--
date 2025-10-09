@@ -241,6 +241,48 @@ class QuizApp {
                 <video id="videoPlayer" class="video-player" controls>
                     <source src="" type="video/mp4">
                 </video>
+                <div class="video-time-display">
+                    <div class="time-info">
+                        <span class="time-label">
+                            <i class="fas fa-play-circle"></i>
+                            当前播放时间:
+                        </span>
+                        <span class="time-value" id="currentTimeDisplay">00:00.00</span>
+                    </div>
+                    <div class="time-info">
+                        <span class="time-label">
+                            <i class="fas fa-film"></i>
+                            视频总时长:
+                        </span>
+                        <span class="time-value" id="totalTimeDisplay">00:00.00</span>
+                    </div>
+                    <div class="time-info segment-info">
+                        <span class="time-label">
+                            <i class="fas fa-cut"></i>
+                            片段范围:
+                        </span>
+                        <span class="time-value">${qa.start_time} - ${qa.end_time}</span>
+                        ${qa.cut_point ? `
+                        <span class="time-label" style="margin-left: 15px;">
+                            <i class="fas fa-scissors"></i>
+                            切分点:
+                        </span>
+                        <span class="time-value">${qa.cut_point}</span>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="perspective-selection">
+                    <div class="perspective-header">
+                        <span class="perspective-label">
+                            <i class="fas fa-video"></i>
+                            视角选择:
+                        </span>
+                        <span class="current-perspective" id="currentPerspective">加载中...</span>
+                    </div>
+                    <div class="perspective-buttons" id="perspectiveButtons">
+                        <!-- 视角按钮将动态生成 -->
+                    </div>
+                </div>
                 <div class="video-controls">
                     <button class="play-btn" onclick="quizApp.playVideo()">
                         <i class="fas fa-play"></i> 播放${directionText}
@@ -279,13 +321,6 @@ class QuizApp {
                     <i class="fas fa-${qa.usable === false ? 'check' : 'ban'}"></i>
                     ${qa.usable === false ? '标记为有效' : '标记为无效'}
                 </button>
-                ${qa.human_answer !== null && qa.human_answer !== undefined ? `
-                <button class="action-btn btn-reset" 
-                        style="background: #17a2b8; color: white;" 
-                        onclick="quizApp.resetAnswer()">
-                    <i class="fas fa-undo"></i> 重置答案
-                </button>
-                ` : ''}
             </div>
             
             <!-- GT显示 -->
@@ -300,9 +335,133 @@ class QuizApp {
         // 加载视频
         this.loadVideo();
         
+        // 添加时间更新监听器
+        this.setupTimeDisplay();
+        
+        // 加载视角选择
+        this.loadPerspectiveSelection();
+        
         // 如果之前在显示GT，重新显示
         if (this.showingGT) {
             this.renderGT();
+        }
+    }
+    
+    setupTimeDisplay() {
+        if (!this.videoPlayer) return;
+        
+        // 更新当前播放时间
+        this.videoPlayer.addEventListener('timeupdate', () => {
+            const currentTime = this.videoPlayer.currentTime;
+            const currentTimeEl = document.getElementById('currentTimeDisplay');
+            if (currentTimeEl) {
+                currentTimeEl.textContent = this.formatTimeWithDecimals(currentTime);
+            }
+        });
+        
+        // 更新视频总时长
+        this.videoPlayer.addEventListener('loadedmetadata', () => {
+            const duration = this.videoPlayer.duration;
+            const totalTimeEl = document.getElementById('totalTimeDisplay');
+            if (totalTimeEl) {
+                totalTimeEl.textContent = this.formatTimeWithDecimals(duration);
+            }
+        });
+    }
+    
+    formatTimeWithDecimals(seconds) {
+        if (!seconds || isNaN(seconds)) return '00:00.00';
+        
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        
+        const minutesStr = String(minutes).padStart(2, '0');
+        const secsStr = secs.toFixed(2).padStart(5, '0');
+        
+        return `${minutesStr}:${secsStr}`;
+    }
+    
+    async loadPerspectiveSelection() {
+        if (!this.currentQA) return;
+        
+        try {
+            const videoName = this.currentQA.video_name;
+            if (!videoName) {
+                document.getElementById('perspectiveButtons').innerHTML = '<div style="text-align: center; color: #999;">无视频信息</div>';
+                return;
+            }
+            
+            const response = await fetch(`/api/video/${videoName}/perspectives`);
+            const data = await response.json();
+            
+            if (data.perspectives && data.perspectives.length > 0) {
+                this.renderPerspectiveButtons(data.perspectives);
+            } else {
+                document.getElementById('perspectiveButtons').innerHTML = '<div style="text-align: center; color: #999;">无可用视角</div>';
+            }
+        } catch (error) {
+            console.error('加载视角信息失败:', error);
+            document.getElementById('perspectiveButtons').innerHTML = '<div style="text-align: center; color: red;">加载失败</div>';
+        }
+    }
+    
+    renderPerspectiveButtons(perspectives) {
+        const currentPerspective = this.currentQA.视角 && this.currentQA.视角[0] ? this.currentQA.视角[0] : null;
+        
+        // 更新当前视角显示
+        const currentPerspectiveEl = document.getElementById('currentPerspective');
+        if (currentPerspectiveEl) {
+            currentPerspectiveEl.textContent = currentPerspective || '未选择';
+        }
+        
+        // 生成视角按钮
+        const buttonsEl = document.getElementById('perspectiveButtons');
+        if (!buttonsEl) return;
+        
+        let html = '';
+        perspectives.forEach(perspective => {
+            const isActive = perspective === currentPerspective;
+            const className = isActive ? 'perspective-btn active' : 'perspective-btn';
+            
+            html += `
+                <button class="${className}" 
+                        onclick="quizApp.selectPerspective('${perspective}')"
+                        title="切换到 ${perspective}">
+                    ${perspective}
+                </button>
+            `;
+        });
+        
+        buttonsEl.innerHTML = html;
+    }
+    
+    async selectPerspective(perspective) {
+        if (!this.currentQA) return;
+        
+        try {
+            // 更新当前QA的视角信息
+            this.currentQA.视角 = [perspective];
+            this.qaList[this.currentIndex].视角 = [perspective];
+            
+            // 重新加载视频
+            await this.loadVideo();
+            
+            // 更新视角按钮状态
+            this.renderPerspectiveButtons(
+                document.querySelectorAll('.perspective-btn').length > 0 ? 
+                Array.from(document.querySelectorAll('.perspective-btn')).map(btn => btn.textContent.trim()) : 
+                []
+            );
+            
+            // 更新当前视角显示
+            const currentPerspectiveEl = document.getElementById('currentPerspective');
+            if (currentPerspectiveEl) {
+                currentPerspectiveEl.textContent = perspective;
+            }
+            
+        } catch (error) {
+            console.error('切换视角失败:', error);
+            alert('❌ 切换视角失败');
         }
     }
     
@@ -311,7 +470,6 @@ class QuizApp {
         
         const options = this.currentQA.options || [];
         const humanAnswer = this.currentQA.human_answer;
-        const groundTruth = this.currentQA.ground_truth;
         const hasAnswered = humanAnswer !== null && humanAnswer !== undefined;
         
         if (options.length === 0) {
@@ -321,47 +479,24 @@ class QuizApp {
         let html = '';
         options.forEach((option, index) => {
             const isSelected = (humanAnswer === option);
-            const isCorrect = (option === groundTruth);
             
             let className = 'option-btn';
             let additionalStyle = '';
-            let icon = '';
             
-            if (hasAnswered) {
-                // 已作答：显示正误反馈
-                if (isSelected && isCorrect) {
-                    // 选择正确：绿色
-                    className += ' correct';
-                    additionalStyle = 'background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); border-color: #28a745; font-weight: 600; color: #155724;';
-                    icon = '<i class="fas fa-check-circle" style="color: #28a745; margin-left: 8px;"></i>';
-                } else if (isSelected && !isCorrect) {
-                    // 选择错误：红色
-                    className += ' incorrect';
-                    additionalStyle = 'background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%); border-color: #dc3545; font-weight: 600; color: #721c24;';
-                    icon = '<i class="fas fa-times-circle" style="color: #dc3545; margin-left: 8px;"></i>';
-                } else if (!isSelected && isCorrect) {
-                    // 正确答案（但未选）：绿色高亮
-                    className += ' correct-answer';
-                    additionalStyle = 'background: #d4edda; border-color: #28a745; font-weight: 600; color: #155724;';
-                    icon = '<i class="fas fa-star" style="color: #ffc107; margin-left: 8px;"></i>';
-                } else {
-                    // 其他选项：灰色禁用
-                    additionalStyle = 'background: #f8f9fa; border-color: #dee2e6; color: #999; cursor: not-allowed;';
-                }
+            if (isSelected) {
+                // 已选中：显示选中状态（淡蓝色）
+                className += ' selected';
+                additionalStyle = 'background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-color: #2196f3; font-weight: 600; color: #0d47a1;';
             } else {
-                // 未作答：恢复初始白色状态，可点击
+                // 未选中：白色背景，可点击
                 additionalStyle = 'background: white; border-color: #e1e8ed; color: #333; cursor: pointer;';
-                icon = '';
             }
-            
-            const disabled = hasAnswered ? 'disabled' : '';
             
             html += `
                 <button class="${className}" 
                         style="${additionalStyle}"
-                        onclick="quizApp.selectOption('${this.escapeHtml(option)}')"
-                        ${disabled}>
-                    ${option}${icon}
+                        onclick="quizApp.selectOption('${this.escapeHtml(option)}')">
+                    ${option}
                 </button>
             `;
         });
@@ -373,9 +508,6 @@ class QuizApp {
     
     async selectOption(option) {
         if (!this.currentQA) return;
-        
-        // 移除了重复作答检查，因为已通过disabled属性控制
-        // 重置后disabled会自动移除，允许重新点击
         
         try {
             const response = await fetch(`/api/quiz/qa/${this.currentQA.qa_id}/answer`, {
@@ -391,20 +523,10 @@ class QuizApp {
                 this.currentQA.human_answer = option;
                 this.qaList[this.currentIndex].human_answer = option;
                 
-                // 判断正误
-                const isCorrect = (option === this.currentQA.ground_truth);
-                
                 // 重新渲染
                 this.renderQAList();
                 this.renderQuestionArea();
                 this.updateStatistics();  // 更新统计
-                
-                // 显示反馈
-                if (isCorrect) {
-                    alert(`✅ 回答正确！\n您的答案: ${option}`);
-                } else {
-                    alert(`❌ 回答错误！\n您的答案: ${option}\n正确答案: ${this.currentQA.ground_truth}`);
-                }
             }
         } catch (error) {
             console.error('保存答案失败:', error);
