@@ -9,6 +9,7 @@ from models.annotation_manager import AnnotationManager
 from models.video_download_manager import VideoDownloadManager
 from models.qa_manager import QAManager
 from models.candidate_qa_manager import candidate_qa_manager, CandidateQAManager
+from models.quiz_manager import quiz_manager, QuizManager
 from models.video_path_manager import video_path_manager
 from config import config
 
@@ -43,8 +44,13 @@ qa_manager = QAManager()
 
 @app.route('/')
 def index():
-    """默认进入QA检查页面"""
-    return redirect(url_for('qa_review'))
+    """默认进入答题模式"""
+    return redirect(url_for('quiz_mode'))
+
+@app.route('/quiz')
+def quiz_mode():
+    """答题模式页面"""
+    return render_template('quiz.html')
 
 @app.route('/video-test')
 def video_test():
@@ -596,6 +602,118 @@ def load_json_file():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+
+# ==================== 答题模式API ====================
+
+@app.route('/api/quiz/qas')
+def get_quiz_qas():
+    """获取所有QA（答题模式）"""
+    try:
+        qas = quiz_manager.get_all_qas()
+        return jsonify({'qas': qas})
+    except Exception as e:
+        return jsonify({'error': f'获取QA失败: {str(e)}'}), 500
+
+@app.route('/api/quiz/qa/<qa_id>')
+def get_quiz_qa(qa_id):
+    """获取单个QA详情"""
+    try:
+        qa = quiz_manager.get_qa_by_id(qa_id)
+        if not qa:
+            return jsonify({'error': 'QA不存在'}), 404
+        
+        # 添加视频路径
+        video_name = qa.get('video_name', '')
+        perspectives = qa.get('视角', [])
+        perspective = perspectives[0] if perspectives else None
+        qa['video_path'] = video_path_manager.get_web_video_path(video_name, perspective)
+        
+        return jsonify({'qa': qa})
+    except Exception as e:
+        return jsonify({'error': f'获取QA失败: {str(e)}'}), 500
+
+@app.route('/api/quiz/qa/<qa_id>/answer', methods=['POST'])
+def set_quiz_answer(qa_id):
+    """设置用户答案"""
+    try:
+        data = request.json
+        
+        # 检查是否包含answer字段（允许null值用于重置）
+        if 'answer' not in data:
+            return jsonify({'error': '缺少answer参数'}), 400
+        
+        answer = data.get('answer')
+        
+        # 允许answer为None（用于重置答案）
+        success = quiz_manager.set_human_answer(qa_id, answer)
+        return jsonify({'success': success})
+    except Exception as e:
+        return jsonify({'error': f'设置答案失败: {str(e)}'}), 500
+
+@app.route('/api/quiz/qa/<qa_id>/toggle-usable', methods=['POST'])
+def toggle_quiz_usable(qa_id):
+    """切换QA有效性"""
+    try:
+        success = quiz_manager.toggle_usable(qa_id)
+        qa = quiz_manager.get_qa_by_id(qa_id)
+        new_usable = qa.get('usable', True) if qa else True
+        
+        return jsonify({'success': success, 'usable': new_usable})
+    except Exception as e:
+        return jsonify({'error': f'切换有效性失败: {str(e)}'}), 500
+
+@app.route('/api/quiz/qa/<qa_id>/video')
+def get_quiz_video(qa_id):
+    """获取QA对应的视频信息"""
+    try:
+        video_info = quiz_manager.get_video_info(qa_id)
+        if not video_info:
+            return jsonify({'error': '找不到视频信息'}), 404
+        
+        return jsonify(video_info)
+    except Exception as e:
+        return jsonify({'error': f'获取视频信息失败: {str(e)}'}), 500
+
+@app.route('/api/quiz/statistics')
+def get_quiz_statistics():
+    """获取答题统计"""
+    try:
+        stats = quiz_manager.get_statistics()
+        return jsonify(stats)
+    except Exception as e:
+        return jsonify({'error': f'获取统计信息失败: {str(e)}'}), 500
+
+@app.route('/api/quiz/load-file', methods=['POST'])
+def load_quiz_file():
+    """加载答题JSON文件"""
+    try:
+        data = request.json
+        file_name = data.get('file_name')
+        
+        if not file_name:
+            return jsonify({'success': False, 'error': '未指定文件名'}), 400
+        
+        # 构建文件路径
+        file_path = os.path.join(os.getcwd(), 'data', file_name)
+        
+        # 检查文件是否存在
+        if not os.path.exists(file_path):
+            return jsonify({'success': False, 'error': f'文件不存在: {file_name}'}), 404
+        
+        # 重新加载管理器
+        global quiz_manager
+        quiz_manager = QuizManager(file_path)
+        
+        return jsonify({
+            'success': True,
+            'message': f'成功加载文件: {file_name}',
+            'file_name': file_name,
+            'file_path': quiz_manager.get_current_file(),
+            'absolute_path': os.path.abspath(file_path)
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
     print("=" * 60)

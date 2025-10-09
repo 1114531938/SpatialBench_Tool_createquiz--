@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>答题模式 - SpatialBench Tool</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* 左侧QA列表 */
+        .left-panel {
+            width: 280px;
+            background: white;
+            border-right: 2px solid #e1e8ed;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .panel-header h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .file-selector {
+            padding: 15px;
+            border-bottom: 1px solid #e1e8ed;
+        }
+
+        .file-selector button {
+            width: 100%;
+            padding: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .file-selector button:hover {
+            background: #764ba2;
+            transform: translateY(-1px);
+        }
+
+        .qa-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .qa-item {
+            padding: 15px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+
+        .qa-item:hover {
+            background: #e9ecef;
+            transform: translateX(4px);
+        }
+
+        .qa-item.active {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border-left-color: #667eea;
+        }
+
+        .qa-item.answered {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+
+        .qa-item.answered:hover {
+            background: #c3e6cb;
+        }
+
+        .qa-item.unusable {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+            opacity: 0.7;
+        }
+
+        .qa-number {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 14px;
+        }
+
+        .qa-status {
+            font-size: 12px;
+            margin-top: 4px;
+            color: #666;
+        }
+
+        /* 右侧答题区域 */
+        .right-panel {
+            flex: 1;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .top-bar {
+            padding: 20px;
+            background: white;
+            border-bottom: 2px solid #e1e8ed;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        /* 视频播放器 */
+        .video-section {
+            margin-bottom: 30px;
+        }
+
+        .video-player {
+            width: 100%;
+            max-width: 800px;
+            height: 450px;
+            background: #000;
+            border-radius: 12px;
+            margin: 0 auto 20px;
+            display: block;
+        }
+
+        .video-controls {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .play-btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .play-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        /* 问题区域 */
+        .question-section {
+            max-width: 800px;
+            margin: 0 auto 30px;
+        }
+
+        .question-text {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .question-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        .meta-tag {
+            padding: 4px 12px;
+            background: #f0f0f0;
+            border-radius: 12px;
+        }
+
+        /* 选项区域 */
+        .options-section {
+            max-width: 800px;
+            margin: 0 auto 30px;
+        }
+
+        .option-btn {
+            width: 100%;
+            padding: 18px 24px;
+            margin-bottom: 12px;
+            background: white;
+            border: 2px solid #e1e8ed;
+            border-radius: 12px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .option-btn:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+            transform: translateX(4px);
+        }
+
+        .option-btn.selected {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border-color: #28a745;
+            font-weight: 600;
+        }
+
+        .option-btn.correct {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border-color: #28a745;
+            font-weight: 600;
+            color: #155724;
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+
+        .option-btn.incorrect {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            border-color: #dc3545;
+            font-weight: 600;
+            color: #721c24;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+
+        .option-btn.correct-answer {
+            background: #d4edda;
+            border-color: #28a745;
+            font-weight: 600;
+            color: #155724;
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+        }
+
+        .option-btn:disabled:hover {
+            transform: none;
+        }
+
+        /* 操作按钮 */
+        .action-buttons {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .action-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-show-gt {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-show-gt:hover {
+            background: #ffb300;
+        }
+
+        .btn-toggle-usable {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-toggle-usable:hover {
+            background: #5a6268;
+        }
+
+        .btn-toggle-usable.unusable {
+            background: #dc3545;
+        }
+
+        .btn-reset:hover {
+            background: #138496 !important;
+        }
+
+        /* GT显示 */
+        .gt-display {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 15px 20px;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .gt-display strong {
+            color: #856404;
+        }
+
+        /* 加载指示器 */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+
+        .loading i {
+            font-size: 48px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* 文件列表弹窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .file-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-item:hover {
+            background: #e9ecef;
+        }
+
+        .close-modal {
+            float: right;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .close-modal:hover {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 左侧QA列表 -->
+        <div class="left-panel">
+            <div class="panel-header">
+                <h2><i class="fas fa-clipboard-list"></i> 答题统计</h2>
+                <div class="stats">
+                    <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.2);">
+                        <strong>📊 总题数: <span id="totalCount">0</span></strong>
+                    </div>
+                    <div style="font-size: 13px;">
+                        <div style="margin-bottom: 4px;">
+                            ✅ 已答: <span id="answeredCount">0</span>
+                        </div>
+                        <div style="margin-bottom: 4px;">
+                            ⏳ 未答: <span id="unansweredCount">0</span>
+                        </div>
+                        <div style="margin-bottom: 4px;">
+                            ✔️ 有效: <span id="usableCount">0</span>
+                        </div>
+                        <div>
+                            ❌ 无效: <span id="unusableCount">0</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.2); font-size: 12px;">
+                        进度: <span id="progressPercent">0%</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="file-selector">
+                <button onclick="quizApp.showFileSelector()">
+                    <i class="fas fa-folder-open"></i> 加载答题文件
+                </button>
+            </div>
+            
+            <div class="qa-list" id="qaList">
+                <!-- QA列表将动态生成 -->
+            </div>
+        </div>
+
+        <!-- 右侧答题区域 -->
+        <div class="right-panel">
+            <div class="top-bar">
+                <div class="navigation-buttons">
+                    <button class="nav-btn" id="prevBtn" onclick="quizApp.gotoPrevious()">
+                        <i class="fas fa-chevron-left"></i> 上一题
+                    </button>
+                    <button class="nav-btn" id="nextBtn" onclick="quizApp.gotoNext()">
+                        下一题 <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div style="display: flex; gap: 20px; align-items: center; font-size: 14px; color: #666;">
+                    <span><i class="fas fa-clipboard-check"></i> 当前: <strong id="currentQANumber">-</strong></span>
+                    <span style="padding: 6px 12px; background: #e3f2fd; border-radius: 6px; color: #1976d2;">
+                        <i class="fas fa-chart-line"></i> 完成度: <strong id="progressPercentTop">0%</strong>
+                    </span>
+                </div>
+            </div>
+
+            <div class="content-area" id="contentArea">
+                <div class="empty-state">
+                    <i class="fas fa-hand-pointer"></i>
+                    <h3>请从左侧列表选择一个题目开始答题</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 文件选择弹窗 -->
+    <div class="modal" id="fileModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="quizApp.hideFileSelector()">&times;</span>
+            <div class="modal-header">选择答题文件</div>
+            <div id="fileList">
+                <div class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <div>加载中...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/quiz_app.js') }}"></script>
+</body>
+</html>
+

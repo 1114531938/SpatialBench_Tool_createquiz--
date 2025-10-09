@@ -27,7 +27,8 @@ class DatasetManager:
         # 加载数据集文件
         for filename in os.listdir(self.data_dir):
             # print(f"📄 发现文件: {filename}")
-            if filename.endswith('.json') and not filename.endswith('_segments.json'):
+            # 忽略答题模式文件（以quiz_开头）和segments文件
+            if filename.endswith('.json') and not filename.endswith('_segments.json') and not filename.startswith('quiz_'):
                 # 检查文件内容，判断是否为数据集文件
                 filepath = os.path.join(self.data_dir, filename)
                 try:
