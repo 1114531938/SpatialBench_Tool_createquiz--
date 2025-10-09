@@ -140,11 +140,17 @@ class QuizApp {
     
     updateStatistics() {
         const total = this.qaList.length;
-        const answered = this.qaList.filter(qa => qa.human_answer !== null && qa.human_answer !== undefined).length;
-        const unanswered = total - answered;
         const usable = this.qaList.filter(qa => qa.usable !== false).length;
         const unusable = total - usable;
-        const progressPercent = total > 0 ? ((answered / total) * 100).toFixed(1) : 0;
+        
+        // 计算有效且已答、有效且未答
+        const usableAndAnswered = this.qaList.filter(qa => 
+            qa.usable !== false && qa.human_answer !== null && qa.human_answer !== undefined
+        ).length;
+        const usableAndUnanswered = usable - usableAndAnswered;
+        
+        // 进度百分比：有效且已答 / 有效数量
+        const progressPercent = usable > 0 ? ((usableAndAnswered / usable) * 100).toFixed(1) : 0;
         
         // 更新左侧面板统计数字
         const totalCountEl = document.getElementById('totalCount');
@@ -155,8 +161,8 @@ class QuizApp {
         const progressPercentEl = document.getElementById('progressPercent');
         
         if (totalCountEl) totalCountEl.textContent = total;
-        if (answeredCountEl) answeredCountEl.textContent = answered;
-        if (unansweredCountEl) unansweredCountEl.textContent = unanswered;
+        if (answeredCountEl) answeredCountEl.textContent = usableAndAnswered;
+        if (unansweredCountEl) unansweredCountEl.textContent = usableAndUnanswered;
         if (usableCountEl) usableCountEl.textContent = usable;
         if (unusableCountEl) unusableCountEl.textContent = unusable;
         if (progressPercentEl) progressPercentEl.textContent = progressPercent + '%';
@@ -190,14 +196,8 @@ class QuizApp {
             currentQANumberEl.textContent = `${index + 1} / ${this.qaList.length}`;
         }
         
-        // 更新顶部进度
-        const total = this.qaList.length;
-        const answered = this.qaList.filter(qa => qa.human_answer !== null && qa.human_answer !== undefined).length;
-        const progressPercent = total > 0 ? ((answered / total) * 100).toFixed(1) : 0;
-        const progressPercentTopEl = document.getElementById('progressPercentTop');
-        if (progressPercentTopEl) {
-            progressPercentTopEl.textContent = progressPercent + '%';
-        }
+        // 更新顶部进度 - 调用统一的统计更新函数
+        this.updateStatistics();
         
         // 加载视频
         await this.loadVideo();
@@ -261,13 +261,6 @@ class QuizApp {
                             当前:
                         </span>
                         <span class="time-value" id="currentTimeDisplay">00:00.00</span>
-                    </span>
-                    <span class="time-info">
-                        <span class="time-label">
-                            <i class="fas fa-film"></i>
-                            总时长:
-                        </span>
-                        <span class="time-value" id="totalTimeDisplay">00:00.00</span>
                     </span>
                     <span class="time-info segment-info">
                         <span class="time-label">
@@ -369,15 +362,6 @@ class QuizApp {
             const currentTimeEl = document.getElementById('currentTimeDisplay');
             if (currentTimeEl) {
                 currentTimeEl.textContent = this.formatTimeWithDecimals(currentTime);
-            }
-        });
-        
-        // 更新视频总时长
-        this.videoPlayer.addEventListener('loadedmetadata', () => {
-            const duration = this.videoPlayer.duration;
-            const totalTimeEl = document.getElementById('totalTimeDisplay');
-            if (totalTimeEl) {
-                totalTimeEl.textContent = this.formatTimeWithDecimals(duration);
             }
         });
     }
