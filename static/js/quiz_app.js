@@ -123,14 +123,20 @@ class QuizApp {
             if (!isUsable) className += ' unusable';
             
             const statusText = !isUsable ? '无效' : (hasAnswer ? '已答' : '未答');
+            const titleAttr = !isUsable && qa.useless_reason ? `title="无效原因：${qa.useless_reason}"` : '';
             
             html += `
-                <div class="${className}" onclick="quizApp.selectQA(${index})">
+                <div class="${className}" onclick="quizApp.selectQA(${index})" ${titleAttr}>
                     <div class="qa-number">题目 ${index + 1}</div>
                     <div class="qa-status">
                         <i class="fas fa-${!isUsable ? 'ban' : (hasAnswer ? 'check-circle' : 'circle')}"></i>
                         ${statusText}
                     </div>
+                    ${!isUsable && qa.useless_reason ? `
+                    <div class="qa-reason" style="font-size: 11px; color: #dc3545; margin-top: 4px;">
+                        <i class="fas fa-info-circle"></i> ${qa.useless_reason}
+                    </div>
+                    ` : ''}
                 </div>
             `;
         });
@@ -309,6 +315,11 @@ class QuizApp {
                     <span class="meta-tag">
                         <i class="fas fa-video"></i> ${qa.start_time} - ${qa.end_time}
                     </span>
+                    ${qa.usable === false && qa.useless_reason ? `
+                    <span class="meta-tag" style="background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%); border-color: #dc3545; color: #dc3545;">
+                        <i class="fas fa-exclamation-circle"></i> 无效：${qa.useless_reason}
+                    </span>
+                    ` : ''}
                 </div>
             </div>
             
@@ -565,9 +576,82 @@ class QuizApp {
     async toggleUsable() {
         if (!this.currentQA) return;
         
+        const currentUsable = this.currentQA.usable !== false;
+        
+        // 如果要标记为无效，显示原因选择对话框
+        if (currentUsable) {
+            this.showReasonModal();
+        } else {
+            // 如果要恢复有效，直接切换，清除原因
+            this.performToggleUsable(null);
+        }
+    }
+    
+    showReasonModal() {
+        const modal = document.getElementById('reasonModal');
+        if (modal) {
+            modal.classList.add('show');
+            
+            // 清除之前的选择
+            const radios = document.querySelectorAll('input[name="useless_reason"]');
+            radios.forEach(radio => {
+                radio.checked = false;
+            });
+            
+            // 如果已有原因，预选中
+            if (this.currentQA.useless_reason) {
+                const targetRadio = document.querySelector(`input[name="useless_reason"][value="${this.currentQA.useless_reason}"]`);
+                if (targetRadio) {
+                    targetRadio.checked = true;
+                }
+            }
+            
+            // 添加选项点击事件
+            const options = document.querySelectorAll('.reason-option');
+            options.forEach(option => {
+                option.addEventListener('click', function() {
+                    const radio = this.querySelector('input[type="radio"]');
+                    if (radio) {
+                        radio.checked = true;
+                        // 更新选中样式
+                        document.querySelectorAll('.reason-option').forEach(opt => opt.classList.remove('selected'));
+                        this.classList.add('selected');
+                    }
+                });
+            });
+        }
+    }
+    
+    cancelReasonSelection() {
+        const modal = document.getElementById('reasonModal');
+        if (modal) {
+            modal.classList.remove('show');
+        }
+    }
+    
+    confirmReasonSelection() {
+        const selectedReason = document.querySelector('input[name="useless_reason"]:checked');
+        
+        if (!selectedReason) {
+            alert('请选择无效原因');
+            return;
+        }
+        
+        // 关闭对话框
+        this.cancelReasonSelection();
+        
+        // 执行标记为无效，带上原因
+        this.performToggleUsable(selectedReason.value);
+    }
+    
+    async performToggleUsable(reason) {
+        if (!this.currentQA) return;
+        
         try {
             const response = await fetch(`/api/quiz/qa/${this.currentQA.qa_id}/toggle-usable`, {
-                method: 'POST'
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ useless_reason: reason })
             });
             
             const result = await response.json();
@@ -576,6 +660,15 @@ class QuizApp {
                 // 更新本地数据
                 this.currentQA.usable = result.usable;
                 this.qaList[this.currentIndex].usable = result.usable;
+                
+                // 更新无效原因
+                if (reason) {
+                    this.currentQA.useless_reason = reason;
+                    this.qaList[this.currentIndex].useless_reason = reason;
+                } else {
+                    delete this.currentQA.useless_reason;
+                    delete this.qaList[this.currentIndex].useless_reason;
+                }
                 
                 // 只更新按钮显示
                 this.updateUsableButton(result.usable);
@@ -586,7 +679,8 @@ class QuizApp {
                 
                 // 显示提示
                 const statusText = result.usable ? '有效' : '无效';
-                alert(`✓ 已标记为${statusText}`);
+                const reasonText = reason ? `\n原因：${reason}` : '';
+                alert(`✓ 已标记为${statusText}${reasonText}`);
             }
         } catch (error) {
             console.error('切换有效性失败:', error);

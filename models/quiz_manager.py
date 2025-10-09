@@ -124,12 +124,21 @@ class QuizManager:
         """设置用户答案"""
         return self.update_qa(qa_id, {'human_answer': answer})
     
-    def toggle_usable(self, qa_id: str) -> bool:
+    def toggle_usable(self, qa_id: str, useless_reason: str = None) -> bool:
         """切换QA的有效性"""
         qa = self.get_qa_by_id(qa_id)
         if qa:
             new_usable = not qa.get('usable', True)
-            return self.update_qa(qa_id, {'usable': new_usable})
+            update_data = {'usable': new_usable}
+            
+            # 如果标记为无效且提供了原因，保存原因
+            if not new_usable and useless_reason:
+                update_data['useless_reason'] = useless_reason
+            # 如果恢复为有效，清除原因
+            elif new_usable:
+                update_data['useless_reason'] = None
+            
+            return self.update_qa(qa_id, update_data)
         return False
     
     def get_video_info(self, qa_id: str) -> Dict:

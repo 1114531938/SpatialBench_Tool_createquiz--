@@ -654,7 +654,10 @@ def set_quiz_answer(qa_id):
 def toggle_quiz_usable(qa_id):
     """切换QA有效性"""
     try:
-        success = quiz_manager.toggle_usable(qa_id)
+        data = request.json or {}
+        useless_reason = data.get('useless_reason')
+        
+        success = quiz_manager.toggle_usable(qa_id, useless_reason)
         qa = quiz_manager.get_qa_by_id(qa_id)
         new_usable = qa.get('usable', True) if qa else True
         
