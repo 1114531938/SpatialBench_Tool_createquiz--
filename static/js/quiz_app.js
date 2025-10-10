@@ -401,7 +401,7 @@ class QuizApp {
                                         <i class="fas fa-bug"></i>
                                         问题本身有问题：
                                     </span>
-                                    <span class="reason-guide-text">问题表述有歧义、语法错误或逻辑矛盾</span>
+                                    <span class="reason-guide-text">时间点突兀、提问对象模糊不明晰</span>
                                 </li>
                                 <li class="reason-guide-item">
                                     <span class="reason-guide-label">
