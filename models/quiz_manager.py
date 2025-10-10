@@ -141,6 +141,12 @@ class QuizManager:
             return self.update_qa(qa_id, update_data)
         return False
     
+    def set_difficulty(self, qa_id: str, difficulty: str) -> bool:
+        """设置QA的难度等级"""
+        if difficulty not in ['Simple', 'Medium', 'Difficulty']:
+            return False
+        return self.update_qa(qa_id, {'difficulty': difficulty})
+    
     def get_video_info(self, qa_id: str) -> Dict:
         """获取QA的视频信息"""
         qa = self.get_qa_by_id(qa_id)

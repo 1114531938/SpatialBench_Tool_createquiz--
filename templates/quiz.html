@@ -431,13 +431,28 @@
 
         /* 问题区域 */
         .question-section {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto 35px;
             background: white;
             padding: 25px 30px;
             border-radius: 16px;
             box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
             border-left: 5px solid #667eea;
+        }
+
+        .question-container {
+            display: flex;
+            gap: 25px;
+            align-items: flex-start;
+        }
+
+        .question-left {
+            flex: 2;
+        }
+
+        .question-right {
+            flex: 1;
+            min-width: 300px;
         }
 
         .question-text {
@@ -481,8 +496,104 @@
 
         /* 选项区域 */
         .options-section {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto 30px;
+        }
+
+        .options-container {
+            display: flex;
+            gap: 25px;
+            align-items: flex-start;
+        }
+
+        .options-left {
+            flex: 2;
+        }
+
+        .options-right {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        /* 无效原因说明 */
+        .invalid-reasons-guide {
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #f5c6cb;
+            margin: 0;
+        }
+
+        .invalid-reasons-guide h5 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #721c24;
+            margin: 0 0 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .invalid-reasons-guide h5 i {
+            color: #dc3545;
+            font-size: 14px;
+        }
+
+        .reasons-guide-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .reason-guide-item {
+            margin-bottom: 12px;
+            padding: 10px 12px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #dc3545;
+            transition: all 0.3s;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .reason-guide-item:hover {
+            transform: translateX(3px);
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.15);
+        }
+
+        .reason-guide-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .reason-guide-label {
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-right: 8px;
+            color: #dc3545;
+            font-size: 12px;
+        }
+
+        .reason-guide-label i {
+            font-size: 11px;
+        }
+
+        .reason-guide-text {
+            color: #721c24;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        /* 响应式布局：小屏幕时垂直排列 */
+        @media (max-width: 1000px) {
+            .options-container {
+                flex-direction: column;
+            }
+
+            .options-right {
+                min-width: auto;
+            }
         }
 
         .option-btn {
@@ -631,6 +742,237 @@
 
         .btn-reset:hover {
             background: #138496 !important;
+        }
+
+        /* 难度按钮组 */
+        .difficulty-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #dee2e6;
+            margin: 0;
+        }
+
+        .difficulty-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .difficulty-guide h5 {
+            font-size: 13px;
+            font-weight: 700;
+            color: #495057;
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .difficulty-guide h5 i {
+            color: #6c757d;
+            font-size: 12px;
+        }
+
+        .guide-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .guide-list li {
+            margin-bottom: 8px;
+            padding: 6px 8px;
+            background: white;
+            border-radius: 6px;
+            border-left: 3px solid #dee2e6;
+            transition: all 0.3s;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .guide-list li:hover {
+            transform: translateX(2px);
+            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+        }
+
+        .guide-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        .guide-label {
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-right: 4px;
+            font-size: 11px;
+        }
+
+        .guide-simple {
+            border-left-color: #28a745;
+        }
+
+        .guide-simple .guide-label {
+            color: #28a745;
+        }
+
+        .guide-medium {
+            border-left-color: #ffc107;
+        }
+
+        .guide-medium .guide-label {
+            color: #f59f00;
+        }
+
+        .guide-difficulty {
+            border-left-color: #dc3545;
+        }
+
+        .guide-difficulty .guide-label {
+            color: #dc3545;
+        }
+
+        .guide-text {
+            color: #6c757d;
+            font-size: 11px;
+        }
+
+        /* 响应式布局：小屏幕时垂直排列 */
+        @media (max-width: 1000px) {
+            .question-container {
+                flex-direction: column;
+            }
+
+            .question-right {
+                min-width: auto;
+            }
+        }
+
+        .difficulty-header {
+            font-size: 16px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .difficulty-header i {
+            color: #28a745;
+        }
+
+        .difficulty-header .required-badge {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-left: 5px;
+        }
+
+        .difficulty-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .difficulty-btn {
+            width: 100%;
+            padding: 12px 16px;
+            background: white;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+        }
+
+        .difficulty-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+        }
+
+        .difficulty-btn.simple {
+            color: #28a745;
+        }
+
+        .difficulty-btn.simple:hover {
+            border-color: #28a745;
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        }
+
+        .difficulty-btn.simple.active {
+            background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+            color: white;
+            border-color: #28a745;
+            box-shadow: 0 3px 12px rgba(40, 167, 69, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .difficulty-btn.medium {
+            color: #ffc107;
+        }
+
+        .difficulty-btn.medium:hover {
+            border-color: #ffc107;
+            background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
+        }
+
+        .difficulty-btn.medium.active {
+            background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+            color: #333;
+            border-color: #ffc107;
+            box-shadow: 0 3px 12px rgba(255, 193, 7, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .difficulty-btn.difficulty {
+            color: #dc3545;
+        }
+
+        .difficulty-btn.difficulty:hover {
+            border-color: #dc3545;
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+        }
+
+        .difficulty-btn.difficulty.active {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border-color: #dc3545;
+            box-shadow: 0 3px 12px rgba(220, 53, 69, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .difficulty-btn i {
+            font-size: 16px;
+        }
+
+        .difficulty-btn .difficulty-label {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .difficulty-btn.active i {
+            animation: pulse 0.5s;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.2);
+            }
         }
 
         /* GT显示 */
@@ -947,6 +1289,10 @@
                 <label class="reason-option">
                     <input type="radio" name="useless_reason" value="问题视角不明晰">
                     <span>问题视角不明晰</span>
+                </label>
+                <label class="reason-option">
+                    <input type="radio" name="useless_reason" value="问题本身有问题">
+                    <span>问题本身有问题</span>
                 </label>
                 <label class="reason-option">
                     <input type="radio" name="useless_reason" value="无法作答彻底舍弃">

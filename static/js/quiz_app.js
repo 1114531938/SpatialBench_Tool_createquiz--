@@ -304,28 +304,130 @@ class QuizApp {
             
             <!-- 问题部分 -->
             <div class="question-section">
-                <div class="question-text">${qa.question}</div>
-                <div class="question-meta">
-                    <span class="meta-tag">
-                        <i class="fas fa-tag"></i> ${qa.question_type || '未知类型'}
-                    </span>
-                    <span class="meta-tag">
-                        <i class="fas fa-clock"></i> ${direction}
-                    </span>
-                    <span class="meta-tag">
-                        <i class="fas fa-video"></i> ${qa.start_time} - ${qa.end_time}
-                    </span>
-                    ${qa.usable === false && qa.useless_reason ? `
-                    <span class="meta-tag" style="background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%); border-color: #dc3545; color: #dc3545;">
-                        <i class="fas fa-exclamation-circle"></i> 无效：${qa.useless_reason}
-                    </span>
-                    ` : ''}
+                <div class="question-container">
+                    <div class="question-left">
+                        <div class="question-text">${qa.question}</div>
+                        <div class="question-meta">
+                            <span class="meta-tag">
+                                <i class="fas fa-tag"></i> ${qa.question_type || '未知类型'}
+                            </span>
+                            <span class="meta-tag">
+                                <i class="fas fa-clock"></i> ${direction}
+                            </span>
+                            <span class="meta-tag">
+                                <i class="fas fa-video"></i> ${qa.start_time} - ${qa.end_time}
+                            </span>
+                            ${qa.usable === false && qa.useless_reason ? `
+                            <span class="meta-tag" style="background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%); border-color: #dc3545; color: #dc3545;">
+                                <i class="fas fa-exclamation-circle"></i> 无效：${qa.useless_reason}
+                            </span>
+                            ` : ''}
+                        </div>
+                    </div>
+                    <div class="question-right">
+                        <!-- 难度选择部分 -->
+                        <div class="difficulty-section">
+                            <div class="difficulty-header">
+                                <i class="fas fa-layer-group"></i>
+                                难度判断
+                                <span class="required-badge">必选</span>
+                            </div>
+                            <div class="difficulty-buttons">
+                                ${this.renderDifficultyButtons()}
+                            </div>
+                            <div class="difficulty-guide">
+                                <h5>
+                                    <i class="fas fa-info-circle"></i>
+                                    判断标准
+                                </h5>
+                                <ul class="guide-list">
+                                    <li class="guide-simple">
+                                        <span class="guide-label">
+                                            <i class="fas fa-smile"></i>
+                                            简单：
+                                        </span>
+                                        <span class="guide-text">仅需观察即可回答</span>
+                                    </li>
+                                    <li class="guide-medium">
+                                        <span class="guide-label">
+                                            <i class="fas fa-meh"></i>
+                                            中等：
+                                        </span>
+                                        <span class="guide-text">需要简单推理、记忆</span>
+                                    </li>
+                                    <li class="guide-difficulty">
+                                        <span class="guide-label">
+                                            <i class="fas fa-frown"></i>
+                                            困难：
+                                        </span>
+                                        <span class="guide-text">需要复杂推理、深度理解</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
             <!-- 选项部分 -->
             <div class="options-section">
-                ${this.renderOptions()}
+                <div class="options-container">
+                    <div class="options-left">
+                        ${this.renderOptions()}
+                    </div>
+                    <div class="options-right">
+                        <div class="invalid-reasons-guide">
+                            <h5>
+                                <i class="fas fa-exclamation-triangle"></i>
+                                无效原因说明
+                            </h5>
+                            <ul class="reasons-guide-list">
+                                <li class="reason-guide-item">
+                                    <span class="reason-guide-label">
+                                        <i class="fas fa-tag"></i>
+                                        问题类型错误：
+                                    </span>
+                                    <span class="reason-guide-text">问题分类不正确，如将计数题标记为推理题</span>
+                                </li>
+                                <li class="reason-guide-item">
+                                    <span class="reason-guide-label">
+                                        <i class="fas fa-eye"></i>
+                                        问题视角不明晰：
+                                    </span>
+                                    <span class="reason-guide-text">视角选择不清晰，无法确定从哪个角度观察</span>
+                                </li>
+                                <li class="reason-guide-item">
+                                    <span class="reason-guide-label">
+                                        <i class="fas fa-bug"></i>
+                                        问题本身有问题：
+                                    </span>
+                                    <span class="reason-guide-text">问题表述有歧义、语法错误或逻辑矛盾</span>
+                                </li>
+                                <li class="reason-guide-item">
+                                    <span class="reason-guide-label">
+                                        <i class="fas fa-ban"></i>
+                                        无法作答彻底舍弃：
+                                    </span>
+                                    <span class="reason-guide-text">由于各种原因完全无法回答此问题</span>
+                                </li>
+                                <li class="reason-guide-item">
+                                    <span class="reason-guide-label">
+                                        <i class="fas fa-list"></i>
+                                        多个可选答案：
+                                    </span>
+                                    <span class="reason-guide-text">存在多个合理答案，无法确定唯一正确答案</span>
+                                </li>
+                                <li class="reason-guide-item">
+                                    <span class="reason-guide-label">
+                                        <i class="fas fa-check-circle"></i>
+                                        答案存在但不在选项中：
+                                    </span>
+                                    <span class="reason-guide-text">正确答案存在但不在提供的选项范围内</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <!-- 操作按钮 -->
@@ -510,6 +612,34 @@ class QuizApp {
         return html;
     }
     
+    renderDifficultyButtons() {
+        if (!this.currentQA) return '';
+        
+        const currentDifficulty = this.currentQA.difficulty || null;
+        
+        const difficulties = [
+            { value: 'Simple', label: '简单', icon: 'fa-smile', className: 'simple' },
+            { value: 'Medium', label: '中等', icon: 'fa-meh', className: 'medium' },
+            { value: 'Difficulty', label: '困难', icon: 'fa-frown', className: 'difficulty' }
+        ];
+        
+        let html = '';
+        difficulties.forEach(diff => {
+            const isActive = currentDifficulty === diff.value;
+            const activeClass = isActive ? 'active' : '';
+            
+            html += `
+                <button class="difficulty-btn ${diff.className} ${activeClass}" 
+                        onclick="quizApp.setDifficulty('${diff.value}')">
+                    <i class="fas ${diff.icon}"></i>
+                    <span class="difficulty-label">${diff.label}</span>
+                </button>
+            `;
+        });
+        
+        return html;
+    }
+    
     // ==================== 答题操作 ====================
     
     async selectOption(option) {
@@ -626,6 +756,59 @@ class QuizApp {
         const modal = document.getElementById('reasonModal');
         if (modal) {
             modal.classList.remove('show');
+        }
+    }
+    
+    async setDifficulty(difficulty) {
+        if (!this.currentQA) return;
+        
+        try {
+            const response = await fetch(`/api/quiz/qa/${this.currentQA.qa_id}/difficulty`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ difficulty: difficulty })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // 更新本地数据
+                this.currentQA.difficulty = difficulty;
+                this.qaList[this.currentIndex].difficulty = difficulty;
+                
+                // 更新难度按钮显示
+                this.updateDifficultyButtons(difficulty);
+                
+                console.log(`✓ 难度已设置为: ${difficulty}`);
+            } else {
+                alert('❌ 设置难度失败');
+            }
+        } catch (error) {
+            console.error('设置难度失败:', error);
+            alert('❌ 设置难度失败');
+        }
+    }
+    
+    updateDifficultyButtons(selectedDifficulty) {
+        // 更新难度按钮的激活状态
+        const difficultyButtons = document.querySelectorAll('.difficulty-btn');
+        difficultyButtons.forEach(button => {
+            button.classList.remove('active');
+        });
+        
+        // 根据选中的难度激活对应按钮
+        const difficultyMap = {
+            'Simple': '.difficulty-btn.simple',
+            'Medium': '.difficulty-btn.medium',
+            'Difficulty': '.difficulty-btn.difficulty'
+        };
+        
+        const selector = difficultyMap[selectedDifficulty];
+        if (selector) {
+            const activeButton = document.querySelector(selector);
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
         }
     }
     

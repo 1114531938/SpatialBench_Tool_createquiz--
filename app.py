@@ -665,6 +665,24 @@ def toggle_quiz_usable(qa_id):
     except Exception as e:
         return jsonify({'error': f'切换有效性失败: {str(e)}'}), 500
 
+@app.route('/api/quiz/qa/<qa_id>/difficulty', methods=['POST'])
+def set_quiz_difficulty(qa_id):
+    """设置QA难度"""
+    try:
+        data = request.json
+        difficulty = data.get('difficulty')
+        
+        if not difficulty:
+            return jsonify({'error': '缺少difficulty参数'}), 400
+        
+        if difficulty not in ['Simple', 'Medium', 'Difficulty']:
+            return jsonify({'error': '无效的难度值'}), 400
+        
+        success = quiz_manager.set_difficulty(qa_id, difficulty)
+        return jsonify({'success': success, 'difficulty': difficulty})
+    except Exception as e:
+        return jsonify({'error': f'设置难度失败: {str(e)}'}), 500
+
 @app.route('/api/quiz/qa/<qa_id>/video')
 def get_quiz_video(qa_id):
     """获取QA对应的视频信息"""
