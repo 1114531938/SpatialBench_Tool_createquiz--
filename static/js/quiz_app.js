@@ -405,24 +405,24 @@ class QuizApp {
                                 </li>
                                 <li class="reason-guide-item">
                                     <span class="reason-guide-label">
+                                        <i class="fas fa-clock"></i>
+                                        时间区间不恰当：
+                                    </span>
+                                    <span class="reason-guide-text">cut point需要微调等情况</span>
+                                </li>
+                                <li class="reason-guide-item">
+                                    <span class="reason-guide-label">
+                                        <i class="fas fa-list-ul"></i>
+                                        选项不恰当：
+                                    </span>
+                                    <span class="reason-guide-text">干扰项质量差（一眼假、多正确答案重复）、原答案错误等</span>
+                                </li>
+                                <li class="reason-guide-item">
+                                    <span class="reason-guide-label">
                                         <i class="fas fa-ban"></i>
                                         无法作答彻底舍弃：
                                     </span>
                                     <span class="reason-guide-text">由于各种原因完全无法回答此问题</span>
-                                </li>
-                                <li class="reason-guide-item">
-                                    <span class="reason-guide-label">
-                                        <i class="fas fa-list"></i>
-                                        多个可选答案：
-                                    </span>
-                                    <span class="reason-guide-text">存在多个合理答案，无法确定唯一正确答案</span>
-                                </li>
-                                <li class="reason-guide-item">
-                                    <span class="reason-guide-label">
-                                        <i class="fas fa-check-circle"></i>
-                                        答案存在但不在选项中：
-                                    </span>
-                                    <span class="reason-guide-text">正确答案存在但不在提供的选项范围内</span>
                                 </li>
                             </ul>
                         </div>
