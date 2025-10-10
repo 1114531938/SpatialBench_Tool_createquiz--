@@ -600,10 +600,12 @@ class QuizApp {
                 additionalStyle = 'background: white; border-color: #e1e8ed; color: #333; cursor: pointer;';
             }
             
+            // 使用data-index来避免特殊字符的问题
             html += `
                 <button class="${className}" 
                         style="${additionalStyle}"
-                        onclick="quizApp.selectOption('${this.escapeHtml(option)}')">
+                        data-option-index="${index}"
+                        onclick="quizApp.selectOptionByIndex(${index})">
                     ${option}
                 </button>
             `;
@@ -641,6 +643,16 @@ class QuizApp {
     }
     
     // ==================== 答题操作 ====================
+    
+    async selectOptionByIndex(index) {
+        if (!this.currentQA) return;
+        
+        const options = this.currentQA.options || [];
+        if (index < 0 || index >= options.length) return;
+        
+        const option = options[index];
+        await this.selectOption(option);
+    }
     
     async selectOption(option) {
         if (!this.currentQA) return;
