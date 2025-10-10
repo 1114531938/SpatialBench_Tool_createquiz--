@@ -81,19 +81,39 @@ from huggingface_hub import hf_hub_download
 
 
 def scan_qa_files(qa_dir: str) -> list:
-    """扫描指定目录下所有包含qacandidate的JSON文件，提取video_name"""
+    """扫描指定目录下所有包含qacandidate或quiz的JSON文件，提取video_name"""
     video_names = []
-    pattern = os.path.join(qa_dir, "*qacandidate*.json")
     
-    for file_path in sorted(glob.glob(pattern)):  # 确保文件顺序一致
-        with open(file_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            for segment_data in data.values():
-                if isinstance(segment_data, dict) and 'video_name' in segment_data:
-                    video_name = segment_data['video_name']
-                    if video_name not in video_names:  # 避免重复
-                        video_names.append(video_name)
+    # 匹配两种类型的文件：qacandidate 和 quiz
+    patterns = [
+        os.path.join(qa_dir, "*qacandidate*.json"),
+        os.path.join(qa_dir, "*quiz*.json")
+    ]
     
+    for pattern in patterns:
+        for file_path in sorted(glob.glob(pattern)):  # 确保文件顺序一致
+            print(f"正在扫描文件: {os.path.basename(file_path)}")
+            
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                
+                # 处理 qacandidate 格式 (对象结构)
+                if isinstance(data, dict):
+                    for segment_data in data.values():
+                        if isinstance(segment_data, dict) and 'video_name' in segment_data:
+                            video_name = segment_data['video_name']
+                            if video_name not in video_names:  # 避免重复
+                                video_names.append(video_name)
+                
+                # 处理 quiz 格式 (数组结构)
+                elif isinstance(data, list):
+                    for item in data:
+                        if isinstance(item, dict) and 'video_name' in item:
+                            video_name = item['video_name']
+                            if video_name not in video_names:  # 避免重复
+                                video_names.append(video_name)
+    
+    print(f"共扫描到 {len(video_names)} 个不重复的视频")
     return video_names
 
 
