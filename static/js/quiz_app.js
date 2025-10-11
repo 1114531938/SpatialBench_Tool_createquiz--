@@ -218,7 +218,10 @@ class QuizApp {
         try {
             // 获取当前QA的视频名称和视角
             const videoName = this.currentQA.video_name;
-            const perspective = this.currentQA.视角 && this.currentQA.视角[0] ? this.currentQA.视角[0] : null;
+            // 优先使用用户选择的视角，否则使用JSON中视角数组的第一个
+            const perspective = this.currentQA.currentPerspective || 
+                               (this.currentQA.视角 && this.currentQA.视角[0]) || 
+                               null;
             
             // 构造视频路径
             let videoPath = '';
@@ -495,23 +498,19 @@ class QuizApp {
         if (!this.currentQA) return;
         
         try {
-            const videoName = this.currentQA.video_name;
-            if (!videoName) {
-                document.getElementById('perspectiveButtons').innerHTML = '<div style="text-align: center; color: #999;">无视频信息</div>';
+            // 直接从JSON中的"视角"属性获取可用视角列表
+            const perspectives = this.currentQA.视角 || [];
+            
+            if (perspectives.length === 0) {
+                document.getElementById('perspectiveButtons').innerHTML = '<div style="text-align: center; color: #999;">无可用视角</div>';
+                this.availablePerspectives = [];
                 return;
             }
             
-            const response = await fetch(`/api/video/${videoName}/perspectives`);
-            const data = await response.json();
+            // 保存可用视角列表
+            this.availablePerspectives = perspectives;
+            this.renderPerspectiveButtons(perspectives);
             
-            if (data.perspectives && data.perspectives.length > 0) {
-                // 保存可用视角列表
-                this.availablePerspectives = data.perspectives;
-                this.renderPerspectiveButtons(data.perspectives);
-            } else {
-                this.availablePerspectives = [];
-                document.getElementById('perspectiveButtons').innerHTML = '<div style="text-align: center; color: #999;">无可用视角</div>';
-            }
         } catch (error) {
             console.error('加载视角信息失败:', error);
             this.availablePerspectives = [];
@@ -520,7 +519,8 @@ class QuizApp {
     }
     
     renderPerspectiveButtons(perspectives) {
-        const currentPerspective = this.currentQA.视角 && this.currentQA.视角[0] ? this.currentQA.视角[0] : null;
+        // 获取当前选择的视角（如果有 currentPerspective 属性则使用，否则使用第一个）
+        const currentPerspective = this.currentQA.currentPerspective || (this.currentQA.视角 && this.currentQA.视角[0]) || null;
         
         // 更新当前视角显示
         const currentPerspectiveEl = document.getElementById('currentPerspective');
@@ -553,14 +553,14 @@ class QuizApp {
         if (!this.currentQA) return;
         
         try {
-            // 更新当前QA的视角信息
-            this.currentQA.视角 = [perspective];
-            this.qaList[this.currentIndex].视角 = [perspective];
+            // 使用临时属性记录当前选择的视角，不修改JSON中的"视角"数组
+            this.currentQA.currentPerspective = perspective;
+            this.qaList[this.currentIndex].currentPerspective = perspective;
             
             // 重新加载视频
             await this.loadVideo();
             
-            // 更新视角按钮状态（使用保存的视角列表）
+            // 更新视角按钮状态
             if (this.availablePerspectives && this.availablePerspectives.length > 0) {
                 this.renderPerspectiveButtons(this.availablePerspectives);
             }
