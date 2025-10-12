@@ -10,6 +10,7 @@ from models.video_download_manager import VideoDownloadManager
 from models.qa_manager import QAManager
 from models.candidate_qa_manager import candidate_qa_manager, CandidateQAManager
 from models.quiz_manager import quiz_manager, QuizManager
+from models.qa_constructor_manager import qa_constructor_manager, QAConstructorManager
 from models.video_path_manager import video_path_manager
 from config import config
 
@@ -44,13 +45,23 @@ qa_manager = QAManager()
 
 @app.route('/')
 def index():
-    """默认进入答题模式"""
-    return redirect(url_for('quiz_mode'))
+    """默认进入QA构造模式"""
+    return redirect(url_for('qa_constructor'))
 
 @app.route('/quiz')
 def quiz_mode():
     """答题模式页面"""
     return render_template('quiz.html')
+
+@app.route('/qa-constructor')
+def qa_constructor():
+    """QA构造模式页面"""
+    return render_template('qa_constructor.html')
+
+@app.route('/test-perspectives')
+def test_perspectives():
+    """测试视角API页面"""
+    return render_template('test_perspectives_api.html')
 
 @app.route('/video-test')
 def video_test():
@@ -735,6 +746,160 @@ def load_quiz_file():
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+# ==================== QA构造模式API ====================
+
+@app.route('/api/constructor/videos')
+def get_constructor_videos():
+    """获取所有video列表"""
+    try:
+        videos = qa_constructor_manager.get_all_videos()
+        return jsonify({'videos': videos})
+    except Exception as e:
+        return jsonify({'error': f'获取videos失败: {str(e)}'}), 500
+
+@app.route('/api/constructor/video/<video_name>/qas')
+def get_constructor_video_qas(video_name):
+    """获取指定video的所有QA"""
+    try:
+        qas = qa_constructor_manager.get_video_qas(video_name)
+        return jsonify({'qas': qas})
+    except Exception as e:
+        return jsonify({'error': f'获取QAs失败: {str(e)}'}), 500
+
+@app.route('/api/constructor/qa/<qa_id>')
+def get_constructor_qa(qa_id):
+    """获取单个QA详情"""
+    try:
+        qa = qa_constructor_manager.get_qa_by_id(qa_id)
+        if not qa:
+            return jsonify({'error': 'QA不存在'}), 404
+        return jsonify({'qa': qa})
+    except Exception as e:
+        return jsonify({'error': f'获取QA失败: {str(e)}'}), 500
+
+@app.route('/api/constructor/qa/<qa_id>', methods=['PUT'])
+def update_constructor_qa(qa_id):
+    """更新QA信息"""
+    try:
+        data = request.json
+        print(f"\n[API] PUT /api/constructor/qa/{qa_id}")
+        print(f"[API] 接收到的数据: {data}")
+        
+        success = qa_constructor_manager.update_qa(qa_id, data)
+        
+        if success:
+            print(f"[API] ✓ 更新成功")
+            return jsonify({'success': True, 'message': '已自动保存'})
+        else:
+            print(f"[API] ✗ 更新失败")
+            return jsonify({'success': False, 'error': '更新失败'}), 500
+    except Exception as e:
+        print(f"[API] ✗ 异常: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': f'更新QA失败: {str(e)}'}), 500
+
+@app.route('/api/constructor/qa/<qa_id>', methods=['DELETE'])
+def delete_constructor_qa(qa_id):
+    """删除QA"""
+    try:
+        success = qa_constructor_manager.delete_qa(qa_id)
+        return jsonify({'success': success, 'message': '已自动保存'})
+    except Exception as e:
+        return jsonify({'error': f'删除QA失败: {str(e)}'}), 500
+
+@app.route('/api/constructor/video/<video_name>/qa', methods=['POST'])
+def create_constructor_qa(video_name):
+    """在指定video中创建新QA"""
+    try:
+        data = request.json
+        print(f"\n[API] POST /api/constructor/video/{video_name}/qa")
+        print(f"[API] 接收到的数据: {data}")
+        
+        success = qa_constructor_manager.create_qa(video_name, data)
+        
+        if success:
+            # 返回更新后的QA列表
+            qas = qa_constructor_manager.get_video_qas(video_name)
+            print(f"[API] ✓ 创建成功，当前QA数量: {len(qas)}")
+            return jsonify({'success': True, 'message': '已自动保存', 'qas': qas})
+        else:
+            print(f"[API] ✗ 创建失败")
+            return jsonify({'success': False, 'error': '创建QA失败'}), 500
+    except Exception as e:
+        print(f"[API] ✗ 异常: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': f'创建QA失败: {str(e)}'}), 500
+
+@app.route('/api/constructor/video/<video_name>/perspectives')
+def get_constructor_perspectives(video_name):
+    """获取视频的所有可用视角"""
+    try:
+        perspectives = qa_constructor_manager.get_available_perspectives(video_name)
+        return jsonify({'perspectives': perspectives})
+    except Exception as e:
+        return jsonify({'error': f'获取视角失败: {str(e)}'}), 500
+
+@app.route('/api/constructor/video/<video_name>/info')
+def get_constructor_video_info(video_name):
+    """获取video的详细信息"""
+    try:
+        video_info = qa_constructor_manager.get_video_info(video_name)
+        return jsonify(video_info)
+    except Exception as e:
+        return jsonify({'error': f'获取视频信息失败: {str(e)}'}), 500
+
+@app.route('/api/constructor/statistics')
+def get_constructor_statistics():
+    """获取统计信息"""
+    try:
+        stats = qa_constructor_manager.get_statistics()
+        return jsonify(stats)
+    except Exception as e:
+        return jsonify({'error': f'获取统计信息失败: {str(e)}'}), 500
+
+@app.route('/api/constructor/load-file', methods=['POST'])
+def load_constructor_file():
+    """加载QA构造JSON文件"""
+    try:
+        data = request.json
+        file_name = data.get('file_name')
+        
+        if not file_name:
+            return jsonify({'success': False, 'error': '未指定文件名'}), 400
+        
+        # 构建文件路径
+        file_path = os.path.join(os.getcwd(), 'data', file_name)
+        
+        # 检查文件是否存在
+        if not os.path.exists(file_path):
+            return jsonify({'success': False, 'error': f'文件不存在: {file_name}'}), 404
+        
+        # 重新加载管理器
+        global qa_constructor_manager
+        qa_constructor_manager = QAConstructorManager(file_path)
+        
+        return jsonify({
+            'success': True,
+            'message': f'成功加载文件: {file_name}',
+            'file_name': file_name,
+            'file_path': qa_constructor_manager.get_current_file(),
+            'absolute_path': os.path.abspath(file_path)
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/constructor/save', methods=['POST'])
+def save_constructor_file():
+    """强制保存QA数据"""
+    try:
+        success = qa_constructor_manager.save_qa_data()
+        return jsonify({'success': success, 'message': '已保存'})
+    except Exception as e:
+        return jsonify({'error': f'保存失败: {str(e)}'}), 500
 
 if __name__ == '__main__':
     print("=" * 60)
