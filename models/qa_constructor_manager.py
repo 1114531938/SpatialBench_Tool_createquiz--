@@ -154,7 +154,7 @@ class QAConstructorManager:
                 'start_time': qa_data.get('start_time', default_info.get('start_time', '00:00.00')),
                 'end_time': qa_data.get('end_time', default_info.get('end_time', '00:00.00')),
                 'cut_point': qa_data.get('cut_point', ''),
-                'usable': qa_data.get('usable', True),  # 默认问题有效
+                'usable': qa_data.get('usable', False),  # 默认无效，需要标注完成后改为有效
                 'useless_reason': qa_data.get('useless_reason', ''),  # 默认为空
                 'version': 'v2'  # 新增QA默认为v2
             }

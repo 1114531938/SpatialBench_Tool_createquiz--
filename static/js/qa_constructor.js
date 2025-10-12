@@ -270,7 +270,7 @@ class QAConstructorApp {
         }
         
         try {
-            // 创建空QA
+            // 创建空QA (默认无效，标注完成后改为有效)
             const newQAData = {
                 '主视角': [],
                 '提问视角': [],
@@ -281,7 +281,7 @@ class QAConstructorApp {
                 'question_type': '',
                 'temporal_direction': '',
                 'cut_point': '',
-                'usable': true,
+                'usable': false,
                 'useless_reason': ''
             };
             
@@ -331,74 +331,85 @@ class QAConstructorApp {
         const qa = this.currentQA;
         const versionBadge = qa.version ? `<span class="version-badge">${qa.version}</span>` : '';
         
-        let html = `
-            <!-- 视频部分 -->
-            <div class="video-section">
+        // 左栏：视频播放器 + 视角管理
+        const leftColumn = `
+            <div class="content-left-column">
+                <!-- 视频部分 -->
+                <div class="video-section">
                 <video id="videoPlayer" class="video-player" controls>
                     <source src="" type="video/mp4">
                 </video>
                 <div class="video-time-display">
-                    <span class="time-info">
-                        <span class="time-label">当前:</span>
-                        <span class="time-value" id="currentTimeDisplay">00:00.00</span>
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                        <span class="time-info">
+                            <span class="time-label">当前:</span>
+                            <span class="time-value" id="currentTimeDisplay">00:00.00</span>
+                        </span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                         <button class="set-cutpoint-btn" onclick="constructorApp.setCurrentTimeToCutPoint()">
-                            <i class="fas fa-scissors"></i> 设置为cut_point
+                            <i class="fas fa-scissors"></i> 设为cut_point
                         </button>
                         <button class="set-question-time-btn" onclick="constructorApp.setCurrentTimeToQuestionTime()">
-                            <i class="fas fa-clock"></i> 设置为提问视角时间
+                            <i class="fas fa-clock"></i> 设为提问时间
                         </button>
-                    </span>
+                    </div>
                 </div>
                 
                 <!-- 视频播放控制 -->
-                <div style="text-align: center; margin: 20px 0; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0;">
                     <button onclick="constructorApp.playForward()" 
-                            style="padding: 12px 28px; border: none; border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: 700; transition: all 0.3s; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; box-shadow: 0 3px 12px rgba(40, 167, 69, 0.3);">
-                        <i class="fas fa-play"></i> 播放前半段 (start → cut_point)
+                            style="padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 700; transition: all 0.3s; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);">
+                        <i class="fas fa-play"></i> 播放前半段
                     </button>
                     <button onclick="constructorApp.playBackward()" 
-                            style="padding: 12px 28px; border: none; border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: 700; transition: all 0.3s; background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; box-shadow: 0 3px 12px rgba(220, 53, 69, 0.3);">
-                        <i class="fas fa-play"></i> 播放后半段 (cut_point → end)
+                            style="padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 700; transition: all 0.3s; background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);">
+                        <i class="fas fa-play"></i> 播放后半段
                     </button>
                 </div>
             </div>
-            
-            <!-- 视角选择三栏 -->
-            <div class="perspective-section">
-                <div class="perspective-columns">
-                    <!-- 所有视角列表 -->
-                    <div class="perspective-column">
-                        <div class="perspective-column-title">
-                            <i class="fas fa-video"></i> 所有视角
+                
+                <!-- 视角选择三栏 -->
+                <div class="perspective-section">
+                    <div class="perspective-columns">
+                        <!-- 所有视角列表 -->
+                        <div class="perspective-column">
+                            <div class="perspective-column-title">
+                                <i class="fas fa-video"></i> 所有视角
+                            </div>
+                            <div class="perspective-list" id="allPerspectivesList">
+                                <div style="text-align: center; color: #999; font-size: 12px;">加载中...</div>
+                            </div>
                         </div>
-                        <div class="perspective-list" id="allPerspectivesList">
-                            <div style="text-align: center; color: #999; font-size: 12px;">加载中...</div>
+                        
+                        <!-- 主视角（视角字段） -->
+                        <div class="perspective-column">
+                            <div class="perspective-column-title">
+                                <i class="fas fa-eye"></i> 主视角
+                            </div>
+                            <div class="perspective-list" id="mainPerspectivesList">
+                                <div style="text-align: center; color: #999; font-size: 12px;">暂无</div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <!-- 主视角（视角字段） -->
-                    <div class="perspective-column">
-                        <div class="perspective-column-title">
-                            <i class="fas fa-eye"></i> 主视角
-                        </div>
-                        <div class="perspective-list" id="mainPerspectivesList">
-                            <div style="text-align: center; color: #999; font-size: 12px;">暂无</div>
-                        </div>
-                    </div>
-                    
-                    <!-- 提问视角 -->
-                    <div class="perspective-column">
-                        <div class="perspective-column-title">
-                            <i class="fas fa-question-circle"></i> 提问视角
-                        </div>
-                        <div class="perspective-list" id="questionPerspectiveDisplay">
-                            <div style="text-align: center; color: #999; font-size: 12px;">暂无</div>
+                        
+                        <!-- 提问视角 -->
+                        <div class="perspective-column">
+                            <div class="perspective-column-title">
+                                <i class="fas fa-question-circle"></i> 提问视角
+                            </div>
+                            <div class="perspective-list" id="questionPerspectiveDisplay">
+                                <div style="text-align: center; color: #999; font-size: 12px;">暂无</div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <!-- 基本信息编辑 -->
+        `;
+        
+        // 右栏：编辑表单
+        const rightColumn = `
+            <div class="content-right-column">
+                <!-- 基本信息编辑 -->
             <div class="edit-section">
                 <h3><i class="fas fa-info-circle"></i> 基本信息${versionBadge}</h3>
                 
@@ -526,13 +537,17 @@ class QAConstructorApp {
                 </div>
             </div>
             
-            <!-- 操作按钮 -->
-            <div class="action-buttons">
-                <button class="action-btn btn-delete" onclick="constructorApp.deleteQA()">
-                    <i class="fas fa-trash"></i> 删除此QA
-                </button>
+                <!-- 操作按钮 -->
+                <div class="action-buttons">
+                    <button class="action-btn btn-delete" onclick="constructorApp.deleteQA()">
+                        <i class="fas fa-trash"></i> 删除此QA
+                    </button>
+                </div>
             </div>
         `;
+        
+        // 组合左右两栏
+        const html = leftColumn + rightColumn;
         
         document.getElementById('contentArea').innerHTML = html;
         
