@@ -254,8 +254,8 @@ class QuizApp {
         }
         
         const qa = this.currentQA;
-        const direction = qa.temporal_direction || 'Forward';
-        const directionText = direction === 'Forward' ? '前半段' : '后半段';
+        const direction = qa.temporal_direction || 'forward';
+        const directionText = direction.toLowerCase() === 'forward' ? '前半段' : '后半段';
         
         let html = `
             <!-- 视频部分 -->
@@ -977,14 +977,14 @@ class QuizApp {
     playVideo() {
         if (!this.currentQA || !this.videoPlayer) return;
         
-        const direction = this.currentQA.temporal_direction || 'Forward';
+        const direction = this.currentQA.temporal_direction || 'forward';
         const startTime = this.timeToSeconds(this.currentQA.start_time);
         const endTime = this.timeToSeconds(this.currentQA.end_time);
         const cutPoint = this.timeToSeconds(this.currentQA.cut_point || '00:00.00');
         
         let playStart, playEnd;
         
-        if (direction === 'Forward') {
+        if (direction.toLowerCase() === 'forward') {
             // Forward: 播放前半段 [start_time, cut_point]
             playStart = startTime;
             playEnd = cutPoint || endTime;

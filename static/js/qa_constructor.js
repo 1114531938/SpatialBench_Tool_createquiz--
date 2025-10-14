@@ -450,8 +450,8 @@ class QAConstructorApp {
                     <select class="form-select" id="temporalDirectionSelect" 
                             onchange="constructorApp.updateField('temporal_direction', this.value)">
                         <option value="">请选择</option>
-                        <option value="forward" ${qa.temporal_direction === 'forward' ? 'selected' : ''}>forward</option>
-                        <option value="backward" ${qa.temporal_direction === 'backward' ? 'selected' : ''}>backward</option>
+                        <option value="forward" ${qa.temporal_direction && qa.temporal_direction.toLowerCase() === 'forward' ? 'selected' : ''}>forward</option>
+                        <option value="backward" ${qa.temporal_direction && qa.temporal_direction.toLowerCase() === 'backward' ? 'selected' : ''}>backward</option>
                     </select>
                 </div>
                 
