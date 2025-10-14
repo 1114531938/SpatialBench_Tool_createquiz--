@@ -186,6 +186,26 @@
             background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
             border-left-color: #667eea;
         }
+        
+        .qa-subitem.qa-usable {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border-left-color: #28a745;
+        }
+        
+        .qa-subitem.qa-unusable {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            border-left-color: #dc3545;
+        }
+        
+        .qa-subitem.qa-usable.active {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border-left-color: #667eea;
+        }
+        
+        .qa-subitem.qa-unusable.active {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border-left-color: #667eea;
+        }
 
         .add-qa-btn {
             padding: 8px 12px;
@@ -586,6 +606,18 @@
 
         .option-input {
             flex: 1;
+            resize: vertical;
+            font-family: inherit;
+            line-height: 1.4;
+        }
+        
+        .option-input.long-option {
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            height: auto;
+            min-height: 40px;
+            line-height: 1.4;
+            padding: 8px 12px;
         }
 
         .option-remove-btn {

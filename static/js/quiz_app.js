@@ -122,6 +122,13 @@ class QuizApp {
             if (hasAnswer) className += ' answered';
             if (!isUsable) className += ' unusable';
             
+            // 根据usable状态添加颜色类
+            if (qa.usable === true || qa.usable === 'true') {
+                className += ' qa-usable';
+            } else if (qa.usable === false || qa.usable === 'false') {
+                className += ' qa-unusable';
+            }
+            
             const statusText = !isUsable ? '无效' : (hasAnswer ? '已答' : '未答');
             const titleAttr = !isUsable && qa.useless_reason ? `title="无效原因：${qa.useless_reason}"` : '';
             
@@ -588,6 +595,10 @@ class QuizApp {
         options.forEach((option, index) => {
             const isSelected = (humanAnswer === option);
             
+            // 计算选项的字节长度（中文字符按2字节计算）
+            const byteLength = this.getByteLength(option);
+            const isLongOption = byteLength > 86;
+            
             let className = 'option-btn';
             let additionalStyle = '';
             
@@ -598,6 +609,11 @@ class QuizApp {
             } else {
                 // 未选中：白色背景，可点击
                 additionalStyle = 'background: white; border-color: #e1e8ed; color: #333; cursor: pointer;';
+            }
+            
+            // 如果是长选项，添加换行样式
+            if (isLongOption) {
+                additionalStyle += ' word-wrap: break-word; white-space: pre-wrap; text-align: left; line-height: 1.4;';
             }
             
             // 使用data-index来避免特殊字符的问题
@@ -612,6 +628,22 @@ class QuizApp {
         });
         
         return html;
+    }
+    
+    // 计算字符串的字节长度（中文字符按2字节计算）
+    getByteLength(str) {
+        if (!str) return 0;
+        let length = 0;
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charAt(i);
+            // 中文字符范围判断
+            if (char.match(/[\u4e00-\u9fa5]/)) {
+                length += 2; // 中文字符按2字节计算
+            } else {
+                length += 1; // 其他字符按1字节计算
+            }
+        }
+        return length;
     }
     
     renderDifficultyButtons() {

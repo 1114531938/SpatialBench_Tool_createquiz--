@@ -197,7 +197,15 @@ class QAConstructorApp {
                 let html = '';
                 data.qas.forEach((qa, index) => {
                     const isActive = this.currentQA && this.currentQA.qa_id === qa.qa_id;
-                    const className = isActive ? 'qa-subitem active' : 'qa-subitem';
+                    let className = isActive ? 'qa-subitem active' : 'qa-subitem';
+                    
+                    // 根据usable状态添加颜色类
+                    if (qa.usable === true || qa.usable === 'true') {
+                        className += ' qa-usable';
+                    } else if (qa.usable === false || qa.usable === 'false') {
+                        className += ' qa-unusable';
+                    }
+                    
                     const version = qa.version ? `<span class="version-badge">${qa.version}</span>` : '';
                     
                     html += `
@@ -1158,11 +1166,15 @@ class QAConstructorApp {
         
         let html = '';
         options.forEach((option, index) => {
+            // 计算选项的字节长度（中文字符按2字节计算）
+            const byteLength = this.getByteLength(option);
+            const isLongOption = byteLength > 86;
+            
             html += `
                 <div class="option-item">
-                    <input type="text" class="form-input option-input" 
-                           value="${option}"
-                           onchange="constructorApp.updateOption(${index}, this.value)">
+                    <textarea class="form-input option-input ${isLongOption ? 'long-option' : ''}" 
+                              onchange="constructorApp.updateOption(${index}, this.value)"
+                              style="${isLongOption ? 'word-wrap: break-word; white-space: pre-wrap; height: auto; min-height: 40px;' : 'min-height: 40px;'}">${option}</textarea>
                     <button class="option-remove-btn" onclick="constructorApp.removeOption(${index})">
                         <i class="fas fa-times"></i>
                     </button>
@@ -1171,6 +1183,49 @@ class QAConstructorApp {
         });
         
         editorEl.innerHTML = html;
+        
+        // 为所有textarea添加自动调整高度的功能
+        const textareas = editorEl.querySelectorAll('textarea.option-input');
+        textareas.forEach(textarea => {
+            this.autoResizeTextarea(textarea);
+        });
+    }
+    
+    // 自动调整textarea高度
+    autoResizeTextarea(textarea) {
+        // 设置初始高度
+        textarea.style.height = 'auto';
+        textarea.style.height = Math.max(40, textarea.scrollHeight) + 'px';
+        
+        // 监听输入事件，自动调整高度
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.max(40, this.scrollHeight) + 'px';
+        });
+        
+        // 监听粘贴事件
+        textarea.addEventListener('paste', function() {
+            setTimeout(() => {
+                this.style.height = 'auto';
+                this.style.height = Math.max(40, this.scrollHeight) + 'px';
+            }, 0);
+        });
+    }
+    
+    // 计算字符串的字节长度（中文字符按2字节计算）
+    getByteLength(str) {
+        if (!str) return 0;
+        let length = 0;
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charAt(i);
+            // 中文字符范围判断
+            if (char.match(/[\u4e00-\u9fa5]/)) {
+                length += 2; // 中文字符按2字节计算
+            } else {
+                length += 1; // 其他字符按1字节计算
+            }
+        }
+        return length;
     }
     
     async addOption() {
