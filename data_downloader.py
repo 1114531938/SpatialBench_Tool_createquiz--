@@ -84,10 +84,11 @@ def scan_qa_files(qa_dir: str) -> list:
     """扫描指定目录下所有包含qacandidate或quiz的JSON文件，提取video_name"""
     video_names = []
     
-    # 匹配两种类型的文件：qacandidate 和 quiz
+    # 匹配所有JSON文件，包括新的格式
     patterns = [
         os.path.join(qa_dir, "*qacandidate*.json"),
-        os.path.join(qa_dir, "*quiz*.json")
+        os.path.join(qa_dir, "*quiz*.json"),
+        os.path.join(qa_dir, "*.json")  # 添加通用JSON文件匹配
     ]
     
     for pattern in patterns:
@@ -97,11 +98,20 @@ def scan_qa_files(qa_dir: str) -> list:
             with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 
-                # 处理 qacandidate 格式 (对象结构)
+                # 处理嵌套格式: {video_name: [{video_name: "xxx", ...}, ...]}
                 if isinstance(data, dict):
-                    for segment_data in data.values():
-                        if isinstance(segment_data, dict) and 'video_name' in segment_data:
-                            video_name = segment_data['video_name']
+                    for video_key, video_data in data.items():
+                        # 检查是否是新的嵌套格式
+                        if isinstance(video_data, list):
+                            # 新格式：外层key是video_name，内层是QA对象数组
+                            for qa_item in video_data:
+                                if isinstance(qa_item, dict) and 'video_name' in qa_item:
+                                    video_name = qa_item['video_name']
+                                    if video_name not in video_names:  # 避免重复
+                                        video_names.append(video_name)
+                        # 检查是否是旧的qacandidate格式
+                        elif isinstance(video_data, dict) and 'video_name' in video_data:
+                            video_name = video_data['video_name']
                             if video_name not in video_names:  # 避免重复
                                 video_names.append(video_name)
                 
