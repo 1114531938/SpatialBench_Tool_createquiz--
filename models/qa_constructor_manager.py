@@ -245,6 +245,69 @@ class QAConstructorManager:
             print(f"删除QA失败: {e}")
             return False
     
+    def duplicate_qa(self, qa_id: str) -> bool:
+        """复制指定QA，创建新ID和v2版本"""
+        try:
+            # 找到要复制的QA
+            original_qa = None
+            video_name = None
+            
+            for vn, qas in self.qa_data.items():
+                for qa in qas:
+                    if qa.get('qa_id') == qa_id:
+                        original_qa = qa
+                        video_name = vn
+                        break
+                if original_qa:
+                    break
+            
+            if not original_qa or not video_name:
+                print(f"未找到要复制的QA: {qa_id}")
+                return False
+            
+            # 生成新的QA ID
+            existing_qas = self.qa_data[video_name]
+            max_index = 0
+            for qa in existing_qas:
+                qa_id_parts = qa.get('qa_id', '').split('_qa_')
+                if len(qa_id_parts) == 2:
+                    try:
+                        index = int(qa_id_parts[1])
+                        max_index = max(max_index, index)
+                    except ValueError:
+                        pass
+            
+            new_qa_id = f"{video_name}_qa_{max_index + 1}"
+            
+            # 创建副本，修改ID和版本
+            duplicated_qa = original_qa.copy()
+            duplicated_qa['qa_id'] = new_qa_id
+            duplicated_qa['version'] = 'v2'
+            
+            # 添加到对应video的列表
+            self.qa_data[video_name].append(duplicated_qa)
+            
+            print(f"成功复制QA: {qa_id} → {new_qa_id}")
+            
+            # 自动保存
+            if self.auto_save_enabled:
+                save_success = self.save_qa_data()
+                if save_success:
+                    print(f"✓ 复制并保存成功: {new_qa_id}")
+                else:
+                    print(f"✗ QA已复制但保存失败: {new_qa_id}")
+                    return False
+            else:
+                print(f"自动保存已禁用")
+            
+            return True
+            
+        except Exception as e:
+            print(f"复制QA失败: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+    
     def get_available_perspectives(self, video_name: str) -> List[str]:
         """获取视频的所有可用视角"""
         try:

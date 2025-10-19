@@ -485,10 +485,10 @@ class QAConstructorApp {
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">提问视角时间点 (HH:MM:SS)</label>
+                    <label class="form-label">提问视角时间点 (MM:SS.XX)</label>
                     <input type="text" class="form-input" id="questionPerspectiveTimeInput" 
                            value="${qa.提问视角_time || ''}"
-                           placeholder="例如：00:57:00"
+                           placeholder="例如：01:34.50"
                            onchange="constructorApp.updateField('提问视角_time', this.value)">
                 </div>
             </div>
@@ -547,6 +547,9 @@ class QAConstructorApp {
             
                 <!-- 操作按钮 -->
                 <div class="action-buttons">
+                    <button class="action-btn btn-duplicate" onclick="constructorApp.duplicateQA()">
+                        <i class="fas fa-copy"></i> 复制此QA
+                    </button>
                     <button class="action-btn btn-delete" onclick="constructorApp.deleteQA()">
                         <i class="fas fa-trash"></i> 删除此QA
                     </button>
@@ -718,12 +721,8 @@ class QAConstructorApp {
         if (!this.videoPlayer) return;
         
         const currentTime = this.videoPlayer.currentTime;
-        // 转换为HH:MM:SS格式
-        const hours = Math.floor(currentTime / 3600);
-        const minutes = Math.floor((currentTime % 3600) / 60);
-        const seconds = Math.floor(currentTime % 60);
-        
-        const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        // 转换为MM:SS.XX格式（与其他时间格式保持一致）
+        const timeStr = this.formatTimeWithDecimals(currentTime);
         
         // 更新输入框
         const questionTimeInput = document.getElementById('questionPerspectiveTimeInput');
@@ -1338,6 +1337,48 @@ class QAConstructorApp {
                 // 如果无效，显示原因选择框
                 reasonGroup.style.display = 'block';
             }
+        }
+    }
+    
+    // ==================== 复制QA ====================
+    
+    async duplicateQA() {
+        if (!this.currentQA) return;
+        
+        if (!confirm('确定要复制此QA吗？将创建一个新的QA副本。')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/constructor/qa/${this.currentQA.qa_id}/duplicate`, {
+                method: 'POST'
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('✓ QA已复制');
+                
+                // 重新加载video列表和统计
+                await this.loadVideos();
+                await this.updateStatistics();
+                
+                // 如果当前video还在，重新加载其QA列表
+                if (this.currentVideo) {
+                    await this.loadVideoQAs(this.currentVideo.video_name);
+                }
+                
+                // 如果返回了新的QA列表，自动选中最后一个（新复制的QA）
+                if (result.qas && result.qas.length > 0) {
+                    const newQA = result.qas[result.qas.length - 1];
+                    await this.selectQA(newQA.qa_id);
+                }
+            } else {
+                alert('❌ 复制失败: ' + (result.error || '未知错误'));
+            }
+        } catch (error) {
+            console.error('复制QA失败:', error);
+            alert('❌ 复制失败');
         }
     }
     

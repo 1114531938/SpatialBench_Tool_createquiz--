@@ -809,6 +809,33 @@ def delete_constructor_qa(qa_id):
     except Exception as e:
         return jsonify({'error': f'删除QA失败: {str(e)}'}), 500
 
+@app.route('/api/constructor/qa/<qa_id>/duplicate', methods=['POST'])
+def duplicate_constructor_qa(qa_id):
+    """复制QA"""
+    try:
+        print(f"\n[API] POST /api/constructor/qa/{qa_id}/duplicate")
+        
+        success = qa_constructor_manager.duplicate_qa(qa_id)
+        
+        if success:
+            # 获取复制后的QA列表（需要知道在哪个video中）
+            # 先找到原QA所在的video
+            original_qa = qa_constructor_manager.get_qa_by_id(qa_id)
+            if original_qa:
+                video_name = original_qa.get('video_name')
+                if video_name:
+                    qas = qa_constructor_manager.get_video_qas(video_name)
+                    print(f"[API] ✓ 复制成功，当前QA数量: {len(qas)}")
+                    return jsonify({'success': True, 'message': '已自动保存', 'qas': qas})
+            
+            return jsonify({'success': True, 'message': '已自动保存'})
+        else:
+            print(f"[API] ✗ 复制失败")
+            return jsonify({'success': False, 'error': '复制QA失败'}), 500
+    except Exception as e:
+        print(f"[API] ✗ 异常: {e}")
+        return jsonify({'error': f'复制QA失败: {str(e)}'}), 500
+
 @app.route('/api/constructor/video/<video_name>/qa', methods=['POST'])
 def create_constructor_qa(video_name):
     """在指定video中创建新QA"""
